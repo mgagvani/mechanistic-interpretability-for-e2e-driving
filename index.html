@@ -1092,8 +1092,13 @@
 
   // ── interaction ──────────────────────────────────────────────────────────
   function hover(i, e) {
-    if (i === null && pinned !== null) { return; }
-    if (i === null) { tip.hidden = true; mark(null); return; }
+    // leaving a point restores the pinned highlight rather than stranding the
+    // transient hover one, which would disagree with the footer
+    if (i === null) {
+      tip.hidden = true;
+      mark(pinned === null ? null : P.feat[pinned]);
+      return;
+    }
     showTip(i); mark(P.feat[i]);
     if (e) moveTip(e);
   }
@@ -1144,10 +1149,26 @@
       });
       var f = pearson(ix);
       if (f) {
-        var L = D.axis.xlim;
-        p.fit.setAttribute('x1', sx(-L)); p.fit.setAttribute('y1', sy(f.intercept - f.slope * L));
-        p.fit.setAttribute('x2', sx(L));  p.fit.setAttribute('y2', sy(f.intercept + f.slope * L));
-        p.fit.setAttribute('visibility', 'visible');
+        // Clip the fit to the plot rectangle by intersecting it with the y bounds.
+        // Clamping the endpoints instead would hold x at +/-xlim while moving y, which
+        // draws a different slope from the one actually fitted.
+        var L = D.axis.xlim, YL = D.axis.ylim;
+        var xa = -L, xb = L;
+        if (Math.abs(f.slope) > 1e-12) {
+          var xTop = (YL - f.intercept) / f.slope;
+          var xBot = (-YL - f.intercept) / f.slope;
+          xa = Math.max(xa, Math.min(xTop, xBot));
+          xb = Math.min(xb, Math.max(xTop, xBot));
+        } else if (Math.abs(f.intercept) > YL) {
+          xa = xb = null;                       // horizontal line outside the box
+        }
+        if (xa === null || xb === null || xb <= xa) {
+          p.fit.setAttribute('visibility', 'hidden');
+        } else {
+          p.fit.setAttribute('x1', sx(xa)); p.fit.setAttribute('y1', sy(f.intercept + f.slope * xa));
+          p.fit.setAttribute('x2', sx(xb)); p.fit.setAttribute('y2', sy(f.intercept + f.slope * xb));
+          p.fit.setAttribute('visibility', 'visible');
+        }
         p.stat.innerHTML = 'n <b>' + f.n + '</b> &nbsp; r <b>' +
           (f.r >= 0 ? '+' : '−') + Math.abs(f.r).toFixed(3) + '</b>';
       } else {
@@ -1168,6 +1189,7 @@
         + 'across panels.'
       : 'Highlighting <b>latent ' + P.feat[pinned] + '</b> — click it again to release.';
     if (pinned !== null) { mark(P.feat[pinned]); showTip(pinned); tip.hidden = true; }
+    else { mark(null); }   // unpinning has to clear the highlight too
 
     document.getElementById('eal-reset').disabled =
       fcMin === 0 && pinned === null &&
