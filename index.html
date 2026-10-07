@@ -108,6 +108,148 @@
   <!-- Fonts - Optimized loading -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Interactive SAE steering widget (scoped to .sae) -->
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Distill's typographic system (values lifted from distill.pub/template.v2.js):
+   system sans stack, rgba(0,0,0,.8) on white, h2 with a hairline underline,
+   captions at rgba(0,0,0,.6), links as inherited colour + a .4 underline, and
+   the named-column grid where figures break out past the text measure.
+   The grid unit is 88px rather than distill's 60px so the figure's page column
+   is wide enough for the camera + top-down pair; proportions are unchanged.
+   Trajectory colours stay the project's own (FIGURE_STYLE_GUIDE.md).
+   Everything is scoped to .sae so it cannot collide with the page's Bulma.
+   ─────────────────────────────────────────────────────────────────────────── */
+.sae{
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
+  --ink:rgba(0,0,0,.8);
+  --mute:rgba(0,0,0,.6);
+  --faint:rgba(0,0,0,.4);
+  --rule:rgba(0,0,0,.1);
+  --plan:#2f6c9f;
+  --edit:#b94a48;
+
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.6em;
+  color:var(--ink);
+  background:#fff;
+  text-size-adjust:100%;
+  -webkit-text-size-adjust:100%;
+}
+.sae *{box-sizing:border-box}
+
+.sae__grid{
+  display:grid;
+  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end];
+  padding-inline:16px;
+}
+.sae__grid > *{grid-column:text}
+.sae__grid > .sae__breakout{grid-column:page}
+
+@media(max-width:1180px){
+  .sae__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}
+}
+@media(max-width:860px){
+  .sae__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}
+}
+
+/* distill: 14px base, 16px from 768, 1.06rem/1.7em from 1180 */
+@media(min-width:768px){ .sae{font-size:16px} }
+@media(min-width:1180px){ .sae{font-size:1.06rem;line-height:1.7em} }
+
+.sae h2{
+  font-family:var(--sans);font-weight:600;font-size:24px;line-height:1.25em;
+  margin:2rem 0 1.5rem 0;border-bottom:1px solid var(--rule);padding-bottom:1rem;
+  color:var(--ink);
+}
+@media(min-width:768px){ .sae h2{font-size:36px} }
+.sae h3{
+  font-family:var(--sans);font-weight:700;font-size:18px;line-height:1.4em;
+  margin:2em 0 1em;color:var(--ink);
+}
+@media(min-width:768px){ .sae h3{font-size:20px} }
+.sae p{margin:0 0 1em;font-size:inherit;line-height:inherit;color:var(--ink)}
+.sae a{color:inherit;border-bottom:1px solid var(--faint);text-decoration:none}
+.sae code{font-family:var(--mono);font-size:.85em;font-variant-numeric:tabular-nums;
+  color:inherit;background:rgba(0,0,0,.04);padding:.08em .34em;border-radius:2px}
+
+/* ── figure ─────────────────────────────────────────────────────────────── */
+.sae__fig{position:relative;margin:1.5em 0 2.5em}
+.sae__views{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.sae__cam{position:relative;background:rgba(0,0,0,.04);overflow:hidden}
+.sae__cam img{display:block;width:100%;height:auto;max-width:100%}
+.sae__cam svg{position:absolute;inset:0;display:block;width:100%;height:100%}
+.sae__oov{
+  position:absolute;left:12px;bottom:12px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+  color:#fff;background:rgba(0,0,0,.72);padding:5px 9px;
+}
+.sae__plan{border:1px solid var(--rule);background:#fff}
+.sae__plan svg{display:block;width:100%;height:auto}
+.sae__plancap{
+  font-family:var(--sans);font-weight:600;text-transform:uppercase;font-size:11px;
+  line-height:1.4em;color:var(--mute);padding:8px 10px 0;letter-spacing:.04em;
+}
+
+.sae__legend{
+  display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;
+  padding-top:10px;font-size:12px;line-height:1.5em;color:var(--mute);
+}
+.sae__key{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.sae__key span{width:20px;height:3px;display:inline-block;flex:none}
+
+/* ── controls ───────────────────────────────────────────────────────────── */
+.sae__ctl{margin-top:22px;padding-top:18px;border-top:1px solid var(--rule)}
+.sae__sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 48px}
+.sae__row{display:grid;grid-template-columns:104px minmax(0,1fr) 58px;gap:14px;
+  align-items:center;padding:6px 0}
+.sae__name{font-size:15px;line-height:1.3em;color:var(--ink)}
+.sae__val{font-family:var(--mono);font-size:12px;color:var(--mute);text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.sae__val b{color:var(--ink);font-weight:600}
+
+.sae input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;
+  margin:0;padding:0;border:none;cursor:ew-resize;display:block;
+}
+.sae input[type=range]:focus{outline:none}
+.sae input[type=range]:focus-visible{outline:2px solid rgba(0,0,0,.5);outline-offset:3px}
+.sae input[type=range]::-webkit-slider-runnable-track{height:1px;background:rgba(0,0,0,.25);
+  border:none;border-radius:0}
+.sae input[type=range]::-moz-range-track{height:1px;background:rgba(0,0,0,.25);
+  border:none;border-radius:0}
+.sae input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;
+  background:rgba(0,0,0,.8);border:none;margin-top:-5.5px;box-shadow:none;
+}
+.sae input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+  background:rgba(0,0,0,.8);border:none;box-shadow:none}
+
+.sae__actions{display:flex;justify-content:flex-end;margin-top:12px}
+.sae button.sae__reset{
+  font-family:var(--sans);font-weight:600;text-transform:uppercase;font-size:11px;
+  line-height:1.4em;letter-spacing:.04em;color:var(--mute);background:none;
+  border:1px solid var(--rule);padding:7px 14px;cursor:pointer;border-radius:0;height:auto;
+}
+.sae button.sae__reset:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
+.sae button.sae__reset:disabled{opacity:.35;cursor:default}
+
+.sae figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
+  padding-top:14px;border-top:1px solid var(--rule)}
+@media(min-width:768px){ .sae figcaption{font-size:13px} }
+.sae figcaption b{color:var(--ink);font-weight:600}
+
+@media (max-width:860px){
+  .sae__views{grid-template-columns:minmax(0,1fr)}
+  .sae__sliders{grid-template-columns:minmax(0,1fr);gap:0}
+}
+@media (max-width:520px){
+  .sae__row{grid-template-columns:92px minmax(0,1fr) 52px;gap:10px}
+}
+</style>
+  
   <!-- Defer non-critical JavaScript -->
   <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
@@ -377,23 +519,6 @@
 </section>
 
 
-<!-- Teaser video-->
-<section class="hero teaser">
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <!-- TODO: Replace with your teaser video -->
-      <video poster="" id="tree" autoplay controls muted loop height="100%" preload="metadata">
-        <!-- TODO: Add your video file path here -->
-        <source src="static/videos/hero.mp4" type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-        Steering a single SAE latent can reliably change planning outputs to turn left or right at varying magnitudes, showing that disentangled SAE features correspond to specific concepts.
-      </h2>
-    </div>
-  </div>
-</section>
-<!-- End teaser video -->
-
 <!-- Paper abstract -->
 <section class="section hero is-light">
   <div class="container is-max-desktop">
@@ -410,6 +535,330 @@
   </div>
 </section>
 <!-- End paper abstract -->
+
+<!-- Interactive SAE steering -->
+<section class="hero is-small">
+  <div class="hero-body" style="padding:0">
+    <div class="sae">
+    <div class="sae__grid">
+
+      <h2>Steering a driving policy by its sparse-autoencoder features</h2>
+      <p>One real frame, one real planner. Move a slider and you are clamping a
+        single latent in the model's residual stream, then re-running the trajectory decoder.
+        Every path below is a forward pass that was actually computed — nothing is interpolated.</p>
+
+      <figure class="sae__fig sae__breakout">
+        <div class="sae__views">
+          <div>
+            <div class="sae__cam">
+              <img id="sae-plate" src="frame.jpg" alt="Forward camera frame from the Waymo Open Dataset end-to-end camera validation split, with the model's planned trajectory drawn on the road">
+              <svg id="sae-cam" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true"></svg>
+              <div class="sae__oov" id="sae-oov" hidden>Out of frame</div>
+            </div>
+            <div class="sae__legend">
+              <span class="sae__key"><span style="background:#2f6c9f"></span>unmodified plan</span>
+              <span class="sae__key"><span style="background:#b94a48"></span>intervened plan</span>
+              <span class="sae__key"><span style="background:none;border-top:2px dashed rgba(22,25,30,.45);height:0"></span>unmodified, for reference</span>
+            </div>
+          </div>
+          <div class="sae__plan">
+            <div class="sae__plancap">Plan, top&#8209;down</div>
+            <svg id="sae-plan" viewBox="0 0 300 372" aria-hidden="true"></svg>
+          </div>
+        </div>
+
+        <div class="sae__ctl">
+          <div class="sae__sliders" id="sae-sliders"></div>
+          <div class="sae__actions">
+            <button type="button" class="sae__reset" id="sae-reset" disabled>Reset</button>
+          </div>
+        </div>
+
+        <figcaption id="sae-cap"></figcaption>
+      </figure>
+
+      <h3 style="margin-top:42px">What the sliders actually do</h3>
+      <p>The planner is a four-block transformer over features from a single forward-facing
+         camera. A top-<em>k</em> sparse autoencoder (384 latents, <code>k = 24</code>) is fitted
+         to the query token leaving the last block, which is the token the trajectory decoder
+         reads. Because that block is the last one, an edit to the token feeds the decoder
+         directly, and no image needs re-encoding.</p>
+      <p>Each slider sets one latent to <code>&alpha; &times; act_max</code>, where
+         <code>act_max</code> is that latent's largest activation anywhere in the validation
+         split. The edited code is pushed back through the decoder and the planner re-runs
+         from the patched token — the same intervention used for the paper's control numbers.
+         The drawn path is the <em>chosen</em> plan: the one of 50 proposals with the lowest
+         predicted error, which is what the car would execute.</p>
+      <p id="sae-prov"></p>
+
+    </div>
+    </div>
+  </div>
+</section>
+
+<script data-assets="static/sae/">
+(function () {
+  "use strict";
+
+  // Where frame.jpg and steering.json live, relative to the page.
+  // In the project template: <script data-assets="static/sae/"> … <\/script>
+  var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
+
+  function B64(s, Ctor) {
+    var bin = atob(s), n = bin.length, u8 = new Uint8Array(n);
+    for (var i = 0; i < n; i++) u8[i] = bin.charCodeAt(i);
+    return new Ctor(u8.buffer);
+  }
+
+  var D = null, TRAJ = null, SPEED = null;
+  var L = 0, NF = 4, idx = [0, 0, 0, 0], baseTraj = null, inputs = [];
+  var camSvg = document.getElementById('sae-cam');
+  var planSvg = document.getElementById('sae-plan');
+  var oovEl = document.getElementById('sae-oov');
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // camera model — matches pano.VirtualCam (axis-aligned, no distortion)
+  function project(x, y) {
+    var c = D.camera;
+    var z = x - c.t[0];
+    if (z <= 0.15) return null;
+    return { u: c.f * (-(y - c.t[1]) / z) + c.cx,
+             v: c.f * (-(c.z_road - c.t[2]) / z) + c.cy };
+  }
+
+  function flat(i) { var n = 0; for (var k = 0; k < NF; k++) n = n * L + i[k]; return n; }
+  function trajAt(i) {
+    var off = flat(i) * 40, out = new Float64Array(40);
+    for (var k = 0; k < 40; k++) out[k] = TRAJ[off + k] / 100;
+    return out;
+  }
+  function deviation(t, b) {
+    var m = 0;
+    for (var k = 0; k < 20; k++) m = Math.max(m, Math.hypot(t[2*k] - b[2*k], t[2*k+1] - b[2*k+1]));
+    return m;
+  }
+  var BLUE = [47,108,159], RED = [185,74,72];
+  function mix(a, b, u) {
+    u = Math.max(0, Math.min(1, u));
+    return 'rgb(' + [0,1,2].map(function (j) {
+      return Math.round(a[j] + (b[j] - a[j]) * u); }).join(',') + ')';
+  }
+
+  // ── camera-view overlay ────────────────────────────────────────────────
+  function drawCam(t, b, col) {
+    while (camSvg.firstChild) camSvg.removeChild(camSvg.firstChild);
+    var W = D.frame.w, H = D.frame.h;
+
+    function path(tt) {
+      var pts = [], started = false;
+      for (var k = 0; k < 20; k++) {
+        var p = project(tt[2*k], tt[2*k+1]);
+        if (!p) { if (started) break; continue; }
+        started = true;
+        if (p.u < -4000 || p.u > W + 4000) break;
+        pts.push(p);
+      }
+      return pts;
+    }
+    function d(pts) {
+      return pts.map(function (p, i) {
+        return (i ? 'L' : 'M') + p.u.toFixed(1) + ' ' + p.v.toFixed(1); }).join(' ');
+    }
+
+    var pb = path(b);
+    if (pb.length > 1) {
+      camSvg.appendChild(el('path', { d: d(pb), fill: 'none', stroke: 'rgba(255,255,255,.40)',
+        'stroke-width': 6, 'stroke-linecap': 'round' }));
+      camSvg.appendChild(el('path', { d: d(pb), fill: 'none', stroke: 'rgba(22,25,30,.40)',
+        'stroke-width': 2, 'stroke-dasharray': '2 9', 'stroke-linecap': 'round' }));
+    }
+    var pt = path(t);
+    if (pt.length > 1) {
+      camSvg.appendChild(el('path', { d: d(pt), fill: 'none', stroke: 'rgba(255,255,255,.82)',
+        'stroke-width': 15, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      camSvg.appendChild(el('path', { d: d(pt), fill: 'none', stroke: col,
+        'stroke-width': 7.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      for (var k = 3; k < 20; k += 4) {
+        var p = project(t[2*k], t[2*k+1]);
+        if (!p) continue;
+        camSvg.appendChild(el('circle', { cx: p.u.toFixed(1), cy: p.v.toFixed(1), r: 6.5,
+          fill: col, stroke: '#fff', 'stroke-width': 2.4 }));
+      }
+    }
+    // a point in front of the camera can still land below the image: this camera sees
+    // no road closer than ~7.6 m, so count only what actually falls inside the frame
+    var inside = 0;
+    for (var j = 0; j < pt.length; j++) {
+      if (pt[j].u >= 0 && pt[j].u <= W && pt[j].v >= 0 && pt[j].v <= H) inside++;
+    }
+    return inside;
+  }
+
+  // ── top-down view ──────────────────────────────────────────────────────
+  var PW = 300, PH = 372, PAD_T = 24, PAD_B = 18, FWD = 58, LAT = 13;
+  function px(y) { return PW / 2 - (y / LAT) * (PW / 2 - 10); }
+  function py(x) { return PH - PAD_B - (x / FWD) * (PH - PAD_T - PAD_B); }
+
+  function drawPlan(t, b, col) {
+    while (planSvg.firstChild) planSvg.removeChild(planSvg.firstChild);
+    var g = el('g', {});
+    for (var m = 10; m <= FWD; m += 10) {
+      g.appendChild(el('line', { x1: 8, x2: PW - 8, y1: py(m), y2: py(m),
+        stroke: '#d8dce2', 'stroke-width': 1 }));
+      var lab = el('text', { x: 11, y: py(m) - 3.5, fill: 'rgba(22,25,30,.34)',
+        'font-size': 8.5, 'font-family': 'IBM Plex Mono, monospace' });
+      lab.textContent = m + ' m';
+      g.appendChild(lab);
+    }
+    for (var s = -10; s <= 10; s += 5) {
+      g.appendChild(el('line', { x1: px(s), x2: px(s), y1: PAD_T, y2: PH - PAD_B,
+        stroke: s === 0 ? '#c3c9d2' : '#e9ecf0', 'stroke-width': 1,
+        'stroke-dasharray': s === 0 ? '3 4' : null }));
+    }
+    planSvg.appendChild(g);
+
+    function d(tt) {
+      var s = '';
+      for (var k = 0; k < 20; k++) {
+        s += (k ? 'L' : 'M') + px(tt[2*k+1]).toFixed(1) + ' ' + py(tt[2*k]).toFixed(1) + ' ';
+      }
+      return s;
+    }
+    planSvg.appendChild(el('path', { d: d(b), fill: 'none', stroke: 'rgba(22,25,30,.42)',
+      'stroke-width': 1.4, 'stroke-dasharray': '2 5' }));
+    planSvg.appendChild(el('path', { d: d(t), fill: 'none', stroke: col,
+      'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+    for (var k = 3; k < 20; k += 4) {
+      planSvg.appendChild(el('circle', { cx: px(t[2*k+1]).toFixed(1),
+        cy: py(t[2*k]).toFixed(1), r: 2.1, fill: col }));
+    }
+    planSvg.appendChild(el('path', { d: 'M' + (PW/2 - 4) + ' ' + (PH - PAD_B) +
+      ' L' + (PW/2) + ' ' + (PH - PAD_B - 7) + ' L' + (PW/2 + 4) + ' ' + (PH - PAD_B) + ' Z',
+      fill: '#16191e' }));
+  }
+
+  function render() {
+    var t = trajAt(idx);
+    var dev = deviation(t, baseTraj);
+    // the palette's semantics are categorical (original vs edited), so cross over
+    // quickly rather than easing through the muddy grey midway between in RGB
+    var col = mix(BLUE, RED, dev / 1.2);
+
+    var nvis = drawCam(t, baseTraj, col);
+    drawPlan(t, baseTraj, col);
+    oovEl.hidden = nvis >= 2;
+
+    document.getElementById('sae-reset').disabled =
+      !idx.some(function (i) { return i !== 0; });
+
+    D.features.forEach(function (f, j) {
+      document.getElementById('sae-v-' + f.key).innerHTML =
+        '&alpha;&nbsp;<b>' + D.grid.alphas[idx[j]].toFixed(2) + '</b>';
+    });
+  }
+
+  function addSlider(container, f, j) {
+    var row = document.createElement('div');
+    row.className = 'sae__row';
+
+    var name = document.createElement('div');
+    name.className = 'sae__name';
+    name.textContent = f.name;
+
+    var wrap = document.createElement('div');
+    var inp = document.createElement('input');
+    inp.type = 'range'; inp.min = 0; inp.max = L - 1; inp.step = 1; inp.value = 0;
+    inp.setAttribute('aria-label', f.name + ' feature strength');
+    inp.title = f.note;
+    inp.addEventListener('input', function () {
+      idx[j] = parseInt(inp.value, 10);
+      render();
+    });
+    wrap.appendChild(inp);
+
+    var val = document.createElement('div');
+    val.className = 'sae__val';
+    val.id = 'sae-v-' + f.key;
+
+    row.appendChild(name); row.appendChild(wrap); row.appendChild(val);
+    container.appendChild(row);
+    inputs.push(inp);
+  }
+
+  function boot(data) {
+    D = data;
+    L = D.grid.levels; NF = D.grid.order.length;
+    TRAJ = B64(D.data.traj, Int16Array);
+    SPEED = B64(D.data.speed, Int16Array);
+    idx = new Array(NF).fill(0);
+    baseTraj = trajAt(idx);
+
+    var host = document.getElementById('sae-sliders');
+    D.features.forEach(function (f, j) { addSlider(host, f, j); });
+
+    document.getElementById('sae-reset').addEventListener('click', function () {
+      idx = new Array(NF).fill(0);
+      inputs.forEach(function (i) { i.value = 0; });
+      render();
+    });
+
+    document.getElementById('sae-cap').innerHTML =
+      'Waymo Open Dataset end-to-end camera, validation split, frame <code>' +
+      D.frame.name.slice(0, 8) + '…-' + String(D.frame.index) + '</code> — the forward ' +
+      'camera, which is the only camera this model consumes. Of 384 latents, <b>' +
+      D.model.n_active + ' are non-zero</b> on this frame, because the autoencoder is ' +
+      'top-<em>k</em> with <code>k=' + D.model.sae_k + '</code>. All four features shown read ' +
+      'exactly <code>0.000</code> here, so the sliders start from the model’s genuine ' +
+      'unmodified prediction. <b>' + Math.pow(L, NF).toLocaleString() + ' combinations</b> ' +
+      'were decoded in advance; each slider position is one of them.';
+
+    document.getElementById('sae-prov').innerHTML =
+      'Checkpoint <code>' + D.model.checkpoint + '</code>, ego speed <code>' +
+      D.ego.speed.toFixed(2) + '&nbsp;m/s</code>, horizon <code>' + D.model.horizon +
+      '&nbsp;×&nbsp;' + D.model.dt + '&nbsp;s</code>. The camera view is a rectilinear ' +
+      'reprojection of the raw 972×1079 frame into a ' + D.camera.hfov + '° virtual ' +
+      'pinhole (100% covered by real pixels); the plan is projected onto the road plane ' +
+      'with the frame’s own calibration. This camera sees no road closer than about ' +
+      '7.6&nbsp;m, so a plan that stops inside that blind spot is marked ' +
+      '<em>out of frame</em> and can be read in the top-down panel instead.';
+
+    render();
+  }
+
+  if (ASSETS) document.getElementById('sae-plate').src = ASSETS + 'frame.jpg';
+  if (window.__SAE_DATA__) boot(window.__SAE_DATA__);
+  else fetch(ASSETS + 'steering.json').then(function (r) { return r.json(); }).then(boot)
+    .catch(function (e) {
+      document.getElementById('sae-cap').textContent =
+        'Could not load steering.json (' + e.message + '). Serve this directory over HTTP, ' +
+        'or open standalone.html, which has the data inlined.';
+    });
+})();
+</script>
+<!-- End interactive SAE steering -->
+
+<!-- Teaser video-->
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <!-- TODO: Replace with your teaser video -->
+      <video poster="" id="tree" autoplay controls muted loop height="100%" preload="metadata">
+        <!-- TODO: Add your video file path here -->
+        <source src="static/videos/hero.mp4" type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        Steering a single SAE latent can reliably change planning outputs to turn left or right at varying magnitudes, showing that disentangled SAE features correspond to specific concepts.
+      </h2>
+    </div>
+  </div>
+</section>
+<!-- End teaser video -->
 
 
 <!-- Image carousel -->
