@@ -918,13 +918,6 @@
     <div class="eal__grid">
 
       <h2>Do edit-sensitive features steer the way the edit implies?</h2>
-      <p>Each point is one SAE latent. Its horizontal position is how much a counterfactual
-         image edit moved that latent; its vertical position is what happens to the planner's
-         braking when the same latent is driven by hand. If the two agree, points fall along
-         a positive diagonal.</p>
-      <p>The static figure stops there. The reliability slider below is the part worth
-         playing with: most latents steer the planner only erratically, and the alignment is
-         much clearer once those are set aside.</p>
 
       <figure class="eal__fig eal__breakout">
         <div class="eal__ctl">
@@ -1223,10 +1216,9 @@
 
     var chips = document.getElementById('eal-chips');
     D.clusters.forEach(function (c) {
-      var n = 0; for (var i = 0; i < N; i++) if (P.clu[i] === c.id) n++;
       chips.appendChild(chip(c.label, c.color, true, function (on) {
         offClusters[c.id] = !on;
-      }, String(n)));
+      }));
     });
 
     document.getElementById('eal-fc').addEventListener('input', function (e) {
