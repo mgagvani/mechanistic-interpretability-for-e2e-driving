@@ -250,6 +250,122 @@
 }
 </style>
   
+  <!-- Interactive alignment figure (scoped to .eal) -->
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Scoped to .eal. Shares the typographic system of the steering widget
+   (distill.pub values, system sans — no webfonts) and the paper's own figure
+   palette, so the two figures read as one page.
+   Cluster colours are exactly plot_edit_to_steering_alignment.py:72-84.
+   ─────────────────────────────────────────────────────────────────────────── */
+.eal{
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
+  --ink:rgba(0,0,0,.8);
+  --mute:rgba(0,0,0,.6);
+  --faint:rgba(0,0,0,.4);
+  --rule:rgba(0,0,0,.1);
+  --grid:#D8DCE2;
+  --zero:#9EA5B1;
+
+  font-family:var(--sans);font-size:14px;line-height:1.6em;
+  color:var(--ink);background:#fff;
+  -webkit-text-size-adjust:100%;
+}
+.eal *{box-sizing:border-box}
+@media(min-width:768px){ .eal{font-size:16px} }
+@media(min-width:1180px){ .eal{font-size:1.06rem;line-height:1.7em} }
+
+.eal__grid{
+  display:grid;
+  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end];
+  padding-inline:16px;
+}
+.eal__grid > *{grid-column:text}
+.eal__grid > .eal__breakout{grid-column:page}
+@media(max-width:1180px){
+  .eal__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}
+}
+@media(max-width:860px){
+  .eal__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}
+}
+
+.eal h2{font-weight:600;font-size:24px;line-height:1.25em;margin:2rem 0 1.5rem;
+  border-bottom:1px solid var(--rule);padding-bottom:1rem;color:var(--ink)}
+@media(min-width:768px){ .eal h2{font-size:36px} }
+.eal p{margin:0 0 1em}
+.eal code{font-family:var(--mono);font-size:.85em;background:rgba(0,0,0,.04);
+  padding:.08em .34em;border-radius:2px;font-variant-numeric:tabular-nums}
+
+.eal__fig{position:relative;margin:1.5em 0 2.5em}
+
+/* ── controls ───────────────────────────────────────────────────────────── */
+.eal__ctl{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);
+  gap:18px 40px;align-items:start;padding-bottom:18px;
+  border-bottom:1px solid var(--rule);margin-bottom:18px}
+.eal__ctlhead{font-family:'Inter',sans-serif;font-weight:500;text-transform:none;
+  font-size:14px;line-height:1.4em;letter-spacing:normal;color:var(--mute);margin-bottom:8px}
+.eal__slider{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:12px;align-items:center}
+.eal__sv{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.eal__note{font-size:12px;line-height:1.5em;color:var(--mute);margin-top:6px}
+
+.eal input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;
+  background:transparent;margin:0;padding:0;border:none;cursor:ew-resize;display:block}
+.eal input[type=range]:focus{outline:none}
+.eal input[type=range]:focus-visible{outline:2px solid rgba(0,0,0,.5);outline-offset:3px}
+.eal input[type=range]::-webkit-slider-runnable-track{height:1px;background:rgba(0,0,0,.25)}
+.eal input[type=range]::-moz-range-track{height:1px;background:rgba(0,0,0,.25)}
+.eal input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:12px;height:12px;border-radius:50%;background:rgba(0,0,0,.8);border:none;margin-top:-5.5px}
+.eal input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+  background:rgba(0,0,0,.8);border:none}
+
+.eal__chips{display:flex;flex-wrap:wrap;gap:7px}
+.eal__chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
+  padding:4px 10px 4px 7px;border:1px solid var(--rule);background:none;cursor:pointer;
+  color:var(--ink);font-family:var(--sans);line-height:1.5}
+.eal__chip:hover{border-color:var(--faint)}
+.eal__chip[aria-pressed=false]{color:var(--faint);border-style:dashed}
+.eal__chip[aria-pressed=false] .eal__dot{opacity:.3}
+.eal__dot{width:9px;height:9px;border-radius:50%;flex:none}
+.eal__chip em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+/* ── panels ─────────────────────────────────────────────────────────────── */
+.eal__panels{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.eal__panel svg{display:block;width:100%;height:auto;overflow:visible}
+.eal__ptitle{font-weight:600;font-size:14px;text-align:center;margin-bottom:2px}
+.eal__pstat{font-family:var(--mono);font-size:11.5px;color:var(--mute);text-align:center;
+  font-variant-numeric:tabular-nums;margin-bottom:4px}
+.eal__pstat b{color:var(--ink);font-weight:600}
+
+.eal__pt{cursor:pointer}
+.eal__axis{font-family:var(--sans);font-size:10px;fill:var(--mute)}
+.eal__axlab{font-family:var(--sans);font-size:11.5px;fill:var(--mute)}
+
+.eal__tip{position:fixed;z-index:50;pointer-events:none;background:rgba(255,255,255,.97);
+  border:1px solid rgba(0,0,0,.18);box-shadow:0 2px 10px rgba(0,0,0,.09);
+  padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:1.55;
+  color:var(--ink);max-width:260px}
+.eal__tip b{font-weight:600}
+.eal__tip hr{border:none;border-top:1px solid var(--rule);margin:5px 0}
+
+.eal__foot{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:baseline;margin-top:14px}
+.eal__spacer{flex:1 1 auto}
+.eal button.eal__reset{font-family:'Inter',sans-serif;font-weight:500;text-transform:none;
+  font-size:14px;line-height:1.4em;letter-spacing:normal;color:var(--mute);background:none;
+  border:1px solid var(--rule);padding:6px 14px;cursor:pointer;border-radius:0}
+.eal button.eal__reset:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
+.eal button.eal__reset:disabled{opacity:.35;cursor:default}
+
+.eal figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
+  padding-top:14px;border-top:1px solid var(--rule)}
+@media(min-width:768px){ .eal figcaption{font-size:13px} }
+.eal figcaption b{color:var(--ink);font-weight:600}
+
+@media(max-width:700px){ .eal__ctl{grid-template-columns:minmax(0,1fr)} }
+</style>
+  
   <!-- Defer non-critical JavaScript -->
   <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
@@ -794,6 +910,328 @@
 })();
 </script>
 <!-- End interactive SAE steering -->
+
+<!-- Interactive alignment figure -->
+<section class="hero is-small">
+  <div class="hero-body" style="padding:0">
+    <div class="eal">
+    <div class="eal__grid">
+
+      <h2>Do edit-sensitive features steer the way the edit implies?</h2>
+      <p>Each point is one SAE latent. Its horizontal position is how much a counterfactual
+         image edit moved that latent; its vertical position is what happens to the planner's
+         braking when the same latent is driven by hand. If the two agree, points fall along
+         a positive diagonal.</p>
+      <p>The static figure stops there. The reliability slider below is the part worth
+         playing with: most latents steer the planner only erratically, and the alignment is
+         much clearer once those are set aside.</p>
+
+      <figure class="eal__fig eal__breakout">
+        <div class="eal__ctl">
+          <div>
+            <div class="eal__ctlhead">Minimum steering reliability</div>
+            <div class="eal__slider">
+              <input type="range" id="eal-fc" min="0" max="95" step="5" value="0"
+                     aria-label="Minimum steering sign-consistency">
+              <div class="eal__sv" id="eal-fcv">0%</div>
+            </div>
+            <div class="eal__note" id="eal-fcnote"></div>
+          </div>
+          <div>
+            <div class="eal__ctlhead">Clusters</div>
+            <div class="eal__chips" id="eal-chips"></div>
+          </div>
+        </div>
+
+        <div class="eal__panels" id="eal-panels"></div>
+
+        <div class="eal__foot">
+          <div class="eal__note" id="eal-sel" style="margin:0"></div>
+          <div class="eal__spacer"></div>
+          <button type="button" class="eal__reset" id="eal-reset" disabled>Reset</button>
+        </div>
+
+      </figure>
+
+    </div>
+    </div>
+    <div class="eal"><div class="eal__tip" id="eal-tip" hidden></div></div>
+  </div>
+</section>
+
+<script data-assets="static/sae/">
+(function () {
+  "use strict";
+  var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
+
+  var D = null, P = null, N = 0;
+  var fcMin = 0, offClusters = {}, pinned = null;
+  var panels = [];                       // {dir, svg, pts:[circle], fit, stat}
+  var tip = document.getElementById('eal-tip');
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // panel geometry, in SVG user units
+  var W = 330, H = 300, M = {t: 10, r: 12, b: 42, l: 46};
+
+  function el(t, a) {
+    var e = document.createElementNS(NS, t);
+    for (var k in a) if (a[k] !== null && a[k] !== undefined) e.setAttribute(k, a[k]);
+    return e;
+  }
+  function sx(x) {
+    var L = D.axis.xlim;
+    return M.l + (Math.max(-L, Math.min(L, x)) + L) / (2 * L) * (W - M.l - M.r);
+  }
+  function sy(y) {
+    var L = D.axis.ylim;
+    return H - M.b - (Math.max(-L, Math.min(L, y)) + L) / (2 * L) * (H - M.t - M.b);
+  }
+  function clipped(x, y) {
+    return Math.abs(x) > D.axis.xlim || Math.abs(y) > D.axis.ylim;
+  }
+
+  function pearson(ix) {
+    var n = ix.length;
+    if (n < 3) return null;
+    var mx = 0, my = 0, i;
+    for (i = 0; i < n; i++) { mx += P.x[ix[i]]; my += P.y[ix[i]]; }
+    mx /= n; my /= n;
+    var sxy = 0, sxx = 0, syy = 0, a, b;
+    for (i = 0; i < n; i++) {
+      a = P.x[ix[i]] - mx; b = P.y[ix[i]] - my;
+      sxy += a * b; sxx += a * a; syy += b * b;
+    }
+    if (sxx <= 0 || syy <= 0) return null;
+    return { r: sxy / Math.sqrt(sxx * syy), slope: sxy / sxx,
+             intercept: my - (sxy / sxx) * mx, n: n };
+  }
+
+  function visible(i) {
+    return !offClusters[P.clu[i]] && P.fc[i] >= fcMin;
+  }
+
+  // ── build ────────────────────────────────────────────────────────────────
+  function buildPanel(d, di) {
+    var wrap = document.createElement('div');
+    wrap.className = 'eal__panel';
+    var title = document.createElement('div');
+    title.className = 'eal__ptitle'; title.textContent = d.label;
+    var stat = document.createElement('div');
+    stat.className = 'eal__pstat';
+    wrap.appendChild(title); wrap.appendChild(stat);
+
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+                          'aria-label': d.label + ' panel' });
+    var L = D.axis.xlim, YL = D.axis.ylim;
+
+    // grid + ticks, matching the paper's tick positions
+    var xt = [-2, -1, 0, 1, 2], yt = [-0.4, -0.2, 0, 0.2, 0.4];
+    xt.forEach(function (t) {
+      if (Math.abs(t) > L) return;
+      svg.appendChild(el('line', { x1: sx(t), x2: sx(t), y1: M.t, y2: H - M.b,
+        stroke: t === 0 ? '#9EA5B1' : '#D8DCE2', 'stroke-width': t === 0 ? 1 : .7 }));
+      var lab = el('text', { x: sx(t), y: H - M.b + 14, 'text-anchor': 'middle',
+                             class: 'eal__axis' });
+      lab.textContent = t; svg.appendChild(lab);
+    });
+    yt.forEach(function (t) {
+      if (Math.abs(t) > YL) return;
+      svg.appendChild(el('line', { x1: M.l, x2: W - M.r, y1: sy(t), y2: sy(t),
+        stroke: t === 0 ? '#9EA5B1' : '#D8DCE2', 'stroke-width': t === 0 ? 1 : .7 }));
+      var lab = el('text', { x: M.l - 7, y: sy(t) + 3.4, 'text-anchor': 'end',
+                             class: 'eal__axis' });
+      lab.textContent = t.toFixed(1); svg.appendChild(lab);
+    });
+
+    var xlab = el('text', { x: (M.l + W - M.r) / 2, y: H - 6, 'text-anchor': 'middle',
+                            class: 'eal__axlab' });
+    xlab.textContent = D.axis.x; svg.appendChild(xlab);
+    if (di === 0) {
+      var ylab = el('text', { x: 12, y: (M.t + H - M.b) / 2, class: 'eal__axlab',
+        transform: 'rotate(-90 12 ' + ((M.t + H - M.b) / 2) + ')', 'text-anchor': 'middle' });
+      ylab.textContent = D.axis.y; svg.appendChild(ylab);
+    }
+
+    var fit = el('line', { stroke: '#222222', 'stroke-width': 1.1, 'stroke-opacity': .75 });
+    svg.appendChild(fit);
+
+    var layer = el('g', {});
+    svg.appendChild(layer);
+    var circles = [];
+    for (var i = 0; i < N; i++) {
+      if (P.dir[i] !== di) continue;
+      var cut = clipped(P.x[i], P.y[i]);
+      var c = el(cut ? 'path' : 'circle', {
+        fill: D.clusters[P.clu[i]].color, stroke: '#fff', 'stroke-width': .5,
+        'fill-opacity': .78, class: 'eal__pt'
+      });
+      if (cut) {
+        // pinned at the axis edge rather than dropped or allowed to stretch the scale
+        c.setAttribute('d', 'M' + (sx(P.x[i]) - 4) + ' ' + (sy(P.y[i]) + 3.5) +
+          'L' + sx(P.x[i]) + ' ' + (sy(P.y[i]) - 3.5) +
+          'L' + (sx(P.x[i]) + 4) + ' ' + (sy(P.y[i]) + 3.5) + 'Z');
+      } else {
+        c.setAttribute('cx', sx(P.x[i])); c.setAttribute('cy', sy(P.y[i]));
+        c.setAttribute('r', 3.6);
+      }
+      c.__i = i;
+      c.addEventListener('mouseenter', function (e) { hover(e.target.__i, e); });
+      c.addEventListener('mousemove', moveTip);
+      c.addEventListener('mouseleave', function () { hover(null); });
+      c.addEventListener('click', function (e) {
+        pinned = (pinned === e.target.__i) ? null : e.target.__i;
+        update();
+      });
+      layer.appendChild(c);
+      circles.push(c);
+    }
+    wrap.appendChild(svg);
+    panels.push({ di: di, svg: svg, circles: circles, fit: fit, stat: stat, wrap: wrap });
+    return wrap;
+  }
+
+  // ── interaction ──────────────────────────────────────────────────────────
+  function hover(i, e) {
+    if (i === null && pinned !== null) { return; }
+    if (i === null) { tip.hidden = true; mark(null); return; }
+    showTip(i); mark(P.feat[i]);
+    if (e) moveTip(e);
+  }
+  function moveTip(e) {
+    var pad = 14;
+    var x = e.clientX + pad, y = e.clientY + pad;
+    var r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - pad;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - pad;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function showTip(i) {
+    var dirs = [];
+    for (var j = 0; j < N; j++) {
+      if (P.feat[j] === P.feat[i]) dirs.push(D.directions[P.dir[j]].label);
+    }
+    tip.innerHTML =
+      '<b>latent ' + P.feat[i] + '</b> &middot; ' + D.clusters[P.clu[i]].label + '<hr>' +
+      'edit response &nbsp;<b>' + P.x[i].toFixed(2) + '</b><br>' +
+      'steering effect &nbsp;<b>' + P.y[i].toFixed(3) + '</b><hr>' +
+      'steering ρ &nbsp;<b>' + P.rho[i].toFixed(2) + '</b><br>' +
+      'sign-consistent &nbsp;<b>' + (P.fc[i] * 100).toFixed(0) + '%</b><br>' +
+      'visual t &nbsp;<b>' + P.vt[i].toFixed(1) + '</b> (n=' + P.vn[i] + ')' +
+      (dirs.length > 1 ? '<hr>also in: ' + dirs.filter(function (v, k, a) {
+        return a.indexOf(v) === k; }).join(', ') : '');
+    tip.hidden = false;
+  }
+  function mark(feat) {
+    panels.forEach(function (p) {
+      p.circles.forEach(function (c) {
+        var on = feat !== null && P.feat[c.__i] === feat;
+        c.setAttribute('stroke', on ? '#111' : '#fff');
+        c.setAttribute('stroke-width', on ? 1.6 : .5);
+      });
+    });
+  }
+
+  function update() {
+    var any = false;
+    panels.forEach(function (p) {
+      var ix = [];
+      p.circles.forEach(function (c) {
+        var v = visible(c.__i);
+        c.setAttribute('fill-opacity', v ? .78 : .05);
+        c.setAttribute('stroke-opacity', v ? 1 : .12);
+        c.style.pointerEvents = v ? '' : 'none';
+        if (v) ix.push(c.__i);
+      });
+      var f = pearson(ix);
+      if (f) {
+        var L = D.axis.xlim;
+        p.fit.setAttribute('x1', sx(-L)); p.fit.setAttribute('y1', sy(f.intercept - f.slope * L));
+        p.fit.setAttribute('x2', sx(L));  p.fit.setAttribute('y2', sy(f.intercept + f.slope * L));
+        p.fit.setAttribute('visibility', 'visible');
+        p.stat.innerHTML = 'n <b>' + f.n + '</b> &nbsp; r <b>' +
+          (f.r >= 0 ? '+' : '−') + Math.abs(f.r).toFixed(3) + '</b>';
+      } else {
+        p.fit.setAttribute('visibility', 'hidden');
+        p.stat.innerHTML = 'n <b>' + ix.length + '</b> &nbsp; r <b>&mdash;</b>';
+      }
+      if (ix.length) any = true;
+    });
+
+    document.getElementById('eal-fcv').textContent = (fcMin * 100).toFixed(0) + '%';
+    document.getElementById('eal-fcnote').textContent = fcMin === 0
+      ? 'Filter to latents which have a consistent steering effect across scenes.'
+      : 'Keeping points whose steering is sign-consistent on ≥ '
+        + (fcMin * 100).toFixed(0) + '% of scenes.';
+
+    document.getElementById('eal-sel').innerHTML = pinned === null
+      ? 'Hover over a point to see more information. Click the point to highlight it '
+        + 'across panels.'
+      : 'Highlighting <b>latent ' + P.feat[pinned] + '</b> — click it again to release.';
+    if (pinned !== null) { mark(P.feat[pinned]); showTip(pinned); tip.hidden = true; }
+
+    document.getElementById('eal-reset').disabled =
+      fcMin === 0 && pinned === null &&
+      !Object.keys(offClusters).some(function (k) { return offClusters[k]; });
+  }
+
+  function chip(label, color, pressed, onToggle, suffix) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'eal__chip';
+    b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    if (color) {
+      var dot = document.createElement('span');
+      dot.className = 'eal__dot'; dot.style.background = color;
+      b.appendChild(dot);
+    }
+    b.appendChild(document.createTextNode(label));
+    if (suffix) { var em = document.createElement('em'); em.textContent = suffix; b.appendChild(em); }
+    b.addEventListener('click', function () {
+      var now = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', now ? 'true' : 'false');
+      onToggle(now); update();
+    });
+    return b;
+  }
+
+  function boot(data) {
+    D = data; P = D.pts; N = P.x.length;
+
+    var host = document.getElementById('eal-panels');
+    D.directions.forEach(function (d, i) { host.appendChild(buildPanel(d, i)); });
+
+    var chips = document.getElementById('eal-chips');
+    D.clusters.forEach(function (c) {
+      var n = 0; for (var i = 0; i < N; i++) if (P.clu[i] === c.id) n++;
+      chips.appendChild(chip(c.label, c.color, true, function (on) {
+        offClusters[c.id] = !on;
+      }, String(n)));
+    });
+
+    document.getElementById('eal-fc').addEventListener('input', function (e) {
+      fcMin = parseInt(e.target.value, 10) / 100; update();
+    });
+    document.getElementById('eal-reset').addEventListener('click', function () {
+      fcMin = 0; pinned = null; offClusters = {};
+        document.getElementById('eal-fc').value = 0;
+      Array.prototype.forEach.call(chips.children, function (b) {
+        b.setAttribute('aria-pressed', 'true');
+      });
+      mark(null); tip.hidden = true; update();
+    });
+
+    update();
+  }
+
+  if (window.__EAL_DATA__) boot(window.__EAL_DATA__);
+  else fetch(ASSETS + 'alignment.json').then(function (r) { return r.json(); }).then(boot)
+    .catch(function (e) {
+      document.getElementById('eal-sel').textContent =
+        'Could not load alignment.json (' + e.message + '). Serve this directory over '
+        + 'HTTP, or open standalone_alignment.html.';
+    });
+})();
+</script>
+<!-- End interactive alignment figure -->
 
 <!-- Youtube video (disabled)
 <section class="hero is-small is-light">
