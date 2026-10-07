@@ -529,11 +529,6 @@
     <div class="sae">
     <div class="sae__grid">
 
-      <h2>Steering a driving policy by its sparse-autoencoder features</h2>
-      <p>One real frame, one real planner. Move a slider and you are clamping a
-        single latent in the model's residual stream, then re-running the trajectory decoder.
-        Every path below is a forward pass that was actually computed — nothing is interpolated.</p>
-
       <figure class="sae__fig sae__breakout">
         <div class="sae__views">
           <div>
@@ -543,9 +538,10 @@
               <div class="sae__oov" id="sae-oov" hidden>Out of frame</div>
             </div>
             <div class="sae__legend">
-              <span class="sae__key"><span style="background:#2f6c9f"></span>unmodified plan</span>
-              <span class="sae__key"><span style="background:#b94a48"></span>intervened plan</span>
-              <span class="sae__key"><span style="background:none;border-top:2px dashed rgba(22,25,30,.45);height:0"></span>unmodified, for reference</span>
+              
+              <span class="sae__key"><span style="background:#2f6c9f"></span>Original prediction</span>
+              <span class="sae__key"><span style="background:#b94a48"></span>Steered prediction</span>
+              <span class="sae__key"><span style="background:none;border-top:2px dashed rgba(22,25,30,.45);height:0"></span>Original prediction</span>
             </div>
           </div>
           <div class="sae__plan">
@@ -563,20 +559,6 @@
 
         <figcaption id="sae-cap"></figcaption>
       </figure>
-
-      <h3 style="margin-top:42px">What the sliders actually do</h3>
-      <p>The planner is a four-block transformer over features from a single forward-facing
-         camera. A top-<em>k</em> sparse autoencoder (384 latents, <code>k = 24</code>) is fitted
-         to the query token leaving the last block, which is the token the trajectory decoder
-         reads. Because that block is the last one, an edit to the token feeds the decoder
-         directly, and no image needs re-encoding.</p>
-      <p>Each slider sets one latent to <code>&alpha; &times; act_max</code>, where
-         <code>act_max</code> is that latent's largest activation anywhere in the validation
-         split. The edited code is pushed back through the decoder and the planner re-runs
-         from the patched token — the same intervention used for the paper's control numbers.
-         The drawn path is the <em>chosen</em> plan: the one of 50 proposals with the lowest
-         predicted error, which is what the car would execute.</p>
-      <p id="sae-prov"></p>
 
     </div>
     </div>
