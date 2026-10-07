@@ -189,8 +189,8 @@
 .sae__plan{border:1px solid var(--rule);background:#fff}
 .sae__plan svg{display:block;width:100%;height:auto}
 .sae__plancap{
-  font-family:var(--sans);font-weight:600;text-transform:uppercase;font-size:11px;
-  line-height:1.4em;color:var(--mute);padding:8px 10px 0;letter-spacing:.04em;
+  font-family:'Inter',sans-serif;font-weight:500;text-transform:none;font-size:14px;
+  line-height:1.4em;color:var(--mute);padding:8px 10px 0;letter-spacing:normal;
 }
 
 .sae__legend{
@@ -449,7 +449,7 @@
 
                   <div class="is-size-5 publication-authors">
                     <!-- TODO: Replace with your institution and conference/journal info -->
-                    <span class="author-block">Machine Learning @ Purdue<br>CoRL 2026</span>
+                    <span class="author-block"><!-- Machine Learning @ Purdue<br> -->CoRL 2026</span>
                   </div>
 
                   <div class="column has-text-centered">
@@ -464,17 +464,6 @@
                         <span>Paper</span>
                       </a>
                     </span>
-
-                    <!-- TODO: Add your supplementary material PDF or remove this section -->
-                    <span class="link-block">
-                      <a href="static/pdfs/supplementary_material.pdf" target="_blank"
-                      class="external-link button is-normal is-rounded is-dark">
-                      <span class="icon">
-                        <i class="fas fa-file-pdf"></i>
-                      </span>
-                      <span>Supplementary</span>
-                    </a>
-                  </span>
 
                   <!-- TODO: Replace with your GitHub repository URL -->
                   <span class="link-block">
@@ -545,7 +534,7 @@
             </div>
           </div>
           <div class="sae__plan">
-            <div class="sae__plancap">Plan, top&#8209;down</div>
+            <div class="sae__plancap">Bird's-Eye View</div>
             <svg id="sae-plan" viewBox="0 0 300 372" aria-hidden="true"></svg>
           </div>
         </div>
@@ -557,7 +546,7 @@
           </div>
         </div>
 
-        <figcaption id="sae-cap"></figcaption>
+        <p id="sae-error" role="alert" hidden></p>
       </figure>
 
     </div>
@@ -777,17 +766,8 @@
       render();
     });
 
-    document.getElementById('sae-cap').innerHTML =
-      'Waymo Open Dataset end-to-end camera, validation split, frame <code>' +
-      D.frame.name.slice(0, 8) + '…-' + String(D.frame.index) + '</code> — the forward ' +
-      'camera, which is the only camera this model consumes. Of 384 latents, <b>' +
-      D.model.n_active + ' are non-zero</b> on this frame, because the autoencoder is ' +
-      'top-<em>k</em> with <code>k=' + D.model.sae_k + '</code>. All four features shown read ' +
-      'exactly <code>0.000</code> here, so the sliders start from the model’s genuine ' +
-      'unmodified prediction. <b>' + Math.pow(L, NF).toLocaleString() + ' combinations</b> ' +
-      'were decoded in advance; each slider position is one of them.';
-
-    document.getElementById('sae-prov').innerHTML =
+    var provenance = document.getElementById('sae-prov');
+    if (provenance) provenance.innerHTML =
       'Checkpoint <code>' + D.model.checkpoint + '</code>, ego speed <code>' +
       D.ego.speed.toFixed(2) + '&nbsp;m/s</code>, horizon <code>' + D.model.horizon +
       '&nbsp;×&nbsp;' + D.model.dt + '&nbsp;s</code>. The camera view is a rectilinear ' +
@@ -802,76 +782,18 @@
 
   if (ASSETS) document.getElementById('sae-plate').src = ASSETS + 'frame.jpg';
   if (window.__SAE_DATA__) boot(window.__SAE_DATA__);
-  else fetch(ASSETS + 'steering.json').then(function (r) { return r.json(); }).then(boot)
+  else fetch(ASSETS + 'steering.json').then(function (r) {
+      if (!r.ok) throw new Error('steering.json returned HTTP ' + r.status);
+      return r.json();
+    }).then(boot)
     .catch(function (e) {
-      document.getElementById('sae-cap').textContent =
-        'Could not load steering.json (' + e.message + '). Serve this directory over HTTP, ' +
-        'or open standalone.html, which has the data inlined.';
+      var error = document.getElementById('sae-error');
+      error.textContent = 'Could not initialize the steering demo (' + e.message + ').';
+      error.hidden = false;
     });
 })();
 </script>
 <!-- End interactive SAE steering -->
-
-<!-- Teaser video-->
-<section class="hero teaser">
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <!-- TODO: Replace with your teaser video -->
-      <video poster="" id="tree" autoplay controls muted loop height="100%" preload="metadata">
-        <!-- TODO: Add your video file path here -->
-        <source src="static/videos/hero.mp4" type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-        Steering a single SAE latent can reliably change planning outputs to turn left or right at varying magnitudes, showing that disentangled SAE features correspond to specific concepts.
-      </h2>
-    </div>
-  </div>
-</section>
-<!-- End teaser video -->
-
-
-<!-- Image carousel -->
-<section class="hero is-small">
-  <div class="hero-body">
-    <div class="container">
-      <div id="results-carousel" class="carousel results-carousel">
-       <div class="item">
-        <!-- TODO: Replace with your research result images -->
-        <img src="static/images/carousel1.jpg" alt="First research result visualization" loading="lazy"/>
-        <!-- TODO: Replace with description of this result -->
-        <h2 class="subtitle has-text-centered">
-          First image description.
-        </h2>
-      </div>
-      <div class="item">
-        <!-- Your image here -->
-        <img src="static/images/carousel2.jpg" alt="Second research result visualization" loading="lazy"/>
-        <h2 class="subtitle has-text-centered">
-          Second image description.
-        </h2>
-      </div>
-      <div class="item">
-        <!-- Your image here -->
-        <img src="static/images/carousel3.jpg" alt="Third research result visualization" loading="lazy"/>
-        <h2 class="subtitle has-text-centered">
-         Third image description.
-       </h2>
-     </div>
-     <div class="item">
-      <!-- Your image here -->
-      <img src="static/images/carousel4.jpg" alt="Fourth research result visualization" loading="lazy"/>
-      <h2 class="subtitle has-text-centered">
-        Fourth image description.
-      </h2>
-    </div>
-  </div>
-</div>
-</div>
-</section>
-<!-- End image carousel -->
-
-
-
 
 <!-- Youtube video (disabled)
 <section class="hero is-small is-light">
@@ -891,62 +813,6 @@
 </section>
 End youtube video -->
 
-
-<!-- Video carousel -->
-<section class="hero is-small">
-  <div class="hero-body">
-    <div class="container">
-      <h2 class="title is-3">Another Carousel</h2>
-      <div id="results-carousel" class="carousel results-carousel">
-        <div class="item item-video1">
-          <!-- TODO: Add poster image for better preview -->
-          <video poster="" id="video1" controls muted loop height="100%" preload="metadata">
-            <!-- Your video file here -->
-            <source src="static/videos/carousel1.mp4" type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-video2">
-          <!-- TODO: Add poster image for better preview -->
-          <video poster="" id="video2" controls muted loop height="100%" preload="metadata">
-            <!-- Your video file here -->
-            <source src="static/videos/carousel2.mp4" type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-video3">
-          <!-- TODO: Add poster image for better preview -->
-          <video poster="" id="video3" controls muted loop height="100%" preload="metadata">
-            <!-- Your video file here -->
-            <source src="static/videos/carousel3.mp4" type="video/mp4">
-          </video>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- End video carousel -->
-
-
-
-
-
-
-<!-- Paper poster -->
-<section class="hero is-small is-light">
-  <div class="hero-body">
-    <div class="container">
-      <h2 class="title">Poster</h2>
-
-      <!-- TODO: Replace with your poster PDF -->
-      <iframe  src="static/pdfs/sample.pdf" width="100%" height="550">
-          </iframe>
-        
-      </div>
-    </div>
-  </section>
-<!--End paper poster -->
-
-
-
 <!--BibTex citation -->
   <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
@@ -957,12 +823,16 @@ End youtube video -->
           <span class="copy-text">Copy</span>
         </button>
       </div>
-      <pre id="bibtex-code"><code>@article{YourPaperKey2024,
-  title={Your Paper Title Here},
-  author={First Author and Second Author and Third Author},
-  journal={Conference/Journal Name},
-  year={2024},
-  url={https://your-domain.com/your-project-page}
+      <pre id="bibtex-code"><code>@inproceedings{gagvani2026mechanistic,
+  title = {Mechanistic Interpretability for End-to-End Self-Driving},
+  author = {Gagvani, Manav and Namikas, Benjamin and
+            Velmurugan, Sivamurugan and Kumar, Nysa and
+            Sharma, Shrey and Peterson, Thomas and
+            Mathur, Pratyush and Chang, Hyunseo Hayden and
+            Paleja, Rohan},
+  booktitle = {Conference on Robot Learning},
+  year = {2026},
+  url = {https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/}
 }</code></pre>
     </div>
 </section>
@@ -976,9 +846,8 @@ End youtube video -->
         <div class="content">
 
           <p>
-            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
-            You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
-            Commons Attribution-ShareAlike 4.0 International License</a>.
+            Credit to <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> and <a href="https://nerfies.github.io" target="_blank">Nerfies</a>.
+            &middot; <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">License</a>
           </p>
 
         </div>
