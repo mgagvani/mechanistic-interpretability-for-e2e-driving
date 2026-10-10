@@ -1404,16 +1404,25 @@
     document.getElementById('cf-toggle').textContent =
       showEdited ? 'Show original' : 'Show edited';
     document.getElementById('cf-prompt').textContent = e.prompt || '';
-    if (showDiff) renderDiff(e); else cv.classList.remove('on');
+    if (showDiff) renderDiff(e);
+    else { diffToken++; cv.classList.remove('on'); }
   }
 
   // the change mask is computed in the browser from the two images, so nothing
   // about "what changed" is asserted by hand
+  //
+  // Each render carries a token. Both images load asynchronously, and the viewer can
+  // move to another example or switch the highlight off while they are still in
+  // flight; without the token that stale callback would paint its own mask over
+  // whatever scene is now showing, and re-enable the overlay after it was turned off.
+  var diffToken = 0;
   function renderDiff(e) {
+    var token = ++diffToken;
     var a = new Image(), b = new Image(), done = 0;
     a.crossOrigin = b.crossOrigin = 'anonymous';
     function go() {
       if (++done < 2) return;
+      if (token !== diffToken || !showDiff || ex() !== e) return;
       var w = e.img_w, h = e.img_h;
       cv.width = w; cv.height = h;
       var c = cv.getContext('2d');
@@ -1472,22 +1481,59 @@
   }
 
   // ── planner output ──────────────────────────────────────────────────────
-  var PW = 250, PH = 300, PT = 16, PB = 16, FWD = 55, LAT = 12;
-  function px(y) { return PW / 2 - (y / LAT) * (PW / 2 - 10); }
-  function py(x) { return PH - PB - (x / FWD) * (PH - PT - PB); }
+  var PW = 250, PH = 300, PT = 16, PB = 16;
+
+  // The window is fitted per example, not fixed. These plans differ enormously in
+  // extent - one reaches 67 m ahead, another swings 21 m laterally, while several
+  // barely move at all - so a single window either clips the long ones or shrinks
+  // the short ones to a dot. A fixed 55 m by +/-12 m frame cut the tails off 5 of
+  // the 12 examples, hiding exactly the divergence this panel exists to show.
+  function planBounds(e) {
+    var all = e.traj_o.concat(e.traj_e), fwd = 0, lat = 0, i;
+    for (i = 0; i < all.length; i++) {
+      if (all[i][0] > fwd) fwd = all[i][0];
+      if (Math.abs(all[i][1]) > lat) lat = Math.abs(all[i][1]);
+    }
+    // headroom so the last waypoint is not drawn on the frame edge, and a floor so
+    // a near-stationary plan is not magnified until resample noise looks like a turn
+    return { fwd: Math.max(fwd * 1.14, 10), lat: Math.max(lat * 1.18, 3) };
+  }
+  function gridStep(span) {
+    return span <= 14 ? 2 : span <= 30 ? 5 : span <= 70 ? 10 : 20;
+  }
 
   function paintPlan() {
     var svg = document.getElementById('cf-plan'); clear(svg);
-    var e = ex();
-    for (var m = 10; m <= FWD; m += 10) {
+    var e = ex(), B = planBounds(e);
+    var FWD = B.fwd, LAT = B.lat;
+    function px(y) { return PW / 2 - (y / LAT) * (PW / 2 - 10); }
+    function py(x) { return PH - PB - (x / FWD) * (PH - PT - PB); }
+
+    var step = gridStep(FWD);
+    for (var m = step; m <= FWD; m += step) {
       svg.appendChild(el('line', { x1: 8, x2: PW - 8, y1: py(m), y2: py(m),
         stroke: '#D8DCE2', 'stroke-width': 1 }));
       var t = el('text', { x: 11, y: py(m) - 3, 'font-family': 'Consolas,monospace',
         'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
       t.textContent = m + ' m'; svg.appendChild(t);
     }
+    // lateral reference lines, so a wide swing reads as distance rather than as a
+    // rescaled version of a narrow one
+    var ls = gridStep(LAT * 2);
+    for (var k = ls; k <= LAT; k += ls) {
+      [-k, k].forEach(function (v) {
+        svg.appendChild(el('line', { x1: px(v), x2: px(v), y1: PT, y2: PH - PB,
+          stroke: '#E9ECF0', 'stroke-width': 1 }));
+      });
+    }
     svg.appendChild(el('line', { x1: px(0), x2: px(0), y1: PT, y2: PH - PB,
       stroke: '#c3c9d2', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
+
+    var sc = el('text', { x: PW - 8, y: PT + 9, 'text-anchor': 'end',
+      'font-family': 'Consolas,monospace', 'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
+    sc.textContent = '\u00b1' + (LAT < 10 ? LAT.toFixed(1) : Math.round(LAT)) + ' m';
+    svg.appendChild(sc);
+
     function path(tr) {
       return tr.map(function (p, i) {
         return (i ? 'L' : 'M') + px(p[1]).toFixed(1) + ' ' + py(p[0]).toFixed(1);
@@ -1501,7 +1547,6 @@
       'stroke-linecap': 'round' }));
     svg.appendChild(el('path', { d: 'M' + (PW/2 - 4) + ' ' + (PH - PB) + 'L' + (PW/2) + ' '
       + (PH - PB - 7) + 'L' + (PW/2 + 4) + ' ' + (PH - PB) + 'Z', fill: '#16191e' }));
-
   }
 
 
@@ -1554,12 +1599,18 @@
       var a = D.audit;
       if (!a) return '';
       var w = (D.withheld || []).reduce(function (n, x) { return n + x.n; }, 0);
-      var txt = ' <b>How these were chosen.</b> Every one of the ' + a.total + ' edited pairs '
-        + 'was inspected for whether the editor changed only what it was asked to change. '
-        + a.first_pass_survivors + ' survived a first pass; a second, independent pass '
-        + 'overturned ' + a.overturned_on_second_pass + ' of those, most often for '
-        + 'collateral the first pass had missed. ' + (a.survived_both || a.shown)
-        + ' survived both.';
+      // Spelled out rather than given as three totals: a first pass that returns both
+      // clean and borderline verdicts does not let the reader subtract one from the
+      // other, and an earlier wording invited exactly that and left six pairs
+      // unaccounted for.
+      var txt = ' <b>How these were chosen.</b> Every one of the ' + a.total + ' edited '
+        + 'pairs was inspected for whether the editor changed only what it was asked to '
+        + 'change. A first pass judged ' + a.first_pass_clean + ' of them clean and '
+        + a.first_pass_borderline + ' borderline, rejecting the rest. A second, '
+        + 'independent pass re-examined all ' + a.first_pass_survivors + ' and overturned '
+        + a.overturned_on_second_pass + ', mostly for collateral the first had missed; of '
+        + 'those left standing, ' + a.still_borderline + ' remained merely borderline. '
+        + 'That leaves ' + a.survived_both + ' pairs judged clean by both.';
       if (w) {
         txt += (w === 1 ? ' One further pair is' : ' A further ' + w + ' pairs are')
           + ' withheld here: '
