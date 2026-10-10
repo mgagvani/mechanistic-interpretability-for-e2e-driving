@@ -365,6 +365,82 @@
 
 @media(max-width:700px){ .eal__ctl{grid-template-columns:minmax(0,1fr)} }
 </style>
+
+  <!-- Counterfactual scene viewer (scoped to .cf) -->
+<style>
+/* Scoped to .cf. Same system as the other two figures: distill type values,
+   the paper's palette (#2F6C9F original, #B94A48 edited, #C45A2A negative bars). */
+.cf{
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
+  --ink:rgba(0,0,0,.8); --mute:rgba(0,0,0,.6); --faint:rgba(0,0,0,.4);
+  --rule:rgba(0,0,0,.1); --grid:#D8DCE2;
+  --orig:#2f6c9f; --edit:#b94a48; --neg:#c45a2a;
+  font-family:var(--sans);font-size:14px;line-height:1.6em;color:var(--ink);background:#fff;
+}
+.cf *{box-sizing:border-box}
+@media(min-width:768px){ .cf{font-size:16px} }
+@media(min-width:1180px){ .cf{font-size:1.06rem;line-height:1.7em} }
+
+.cf__grid{display:grid;padding-inline:16px;
+  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end]}
+.cf__grid > *{grid-column:text}
+.cf__grid > .cf__breakout{grid-column:page}
+@media(max-width:1180px){.cf__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}}
+@media(max-width:860px){.cf__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}}
+
+.cf h2{font-weight:600;font-size:24px;line-height:1.25em;margin:2rem 0 1.5rem;
+  border-bottom:1px solid var(--rule);padding-bottom:1rem}
+@media(min-width:768px){ .cf h2{font-size:36px} }
+.cf p{margin:0 0 1em}
+.cf code{font-family:var(--mono);font-size:.85em;background:rgba(0,0,0,.04);padding:.08em .34em}
+
+.cf__fig{margin:1.5em 0 2.5em}
+.cf__chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.cf__chip{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:1.4;
+  padding:5px 12px;border:1px solid var(--rule);background:none;cursor:pointer;color:var(--ink)}
+.cf__chip:hover{border-color:var(--faint)}
+.cf__chip[aria-pressed=true]{border-color:rgba(0,0,0,.65);color:#000}
+
+/* three linked panes */
+.cf__panes{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr) 250px;
+  gap:18px;align-items:start}
+.cf__pane h3{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:1.4;
+  color:var(--mute);margin:0 0 7px}
+
+.cf__scene{position:relative;background:rgba(0,0,0,.04);overflow:hidden}
+.cf__scene img{display:block;width:100%;height:auto}
+.cf__scene canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}
+.cf__scene canvas.on{opacity:1}
+.cf__badge{position:absolute;left:10px;top:10px;font-family:var(--mono);font-size:11px;
+  color:#fff;background:rgba(0,0,0,.72);padding:4px 8px}
+.cf__scenebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:9px}
+.cf__prompt{font-size:12px;line-height:1.5em;color:var(--mute);margin-top:8px}
+
+.cf__bars svg,.cf__plan svg{display:block;width:100%;height:auto}
+.cf__plan{border:1px solid var(--rule)}
+
+
+
+.cf__nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.cf button.cf__btn{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:1.4;
+  color:var(--mute);background:none;border:1px solid var(--rule);padding:5px 12px;cursor:pointer}
+.cf button.cf__btn:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
+.cf button.cf__btn:disabled{opacity:.35;cursor:default}
+.cf__count{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.cf__key{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+.cf__key i{width:18px;height:3px;display:inline-block}
+
+.cf__caveat{margin:8px 0 0;font-size:12.5px;line-height:1.5em;color:var(--ink);
+  padding:7px 10px;border-left:2px solid #AD7814;background:rgba(173,120,20,.07)}
+@media(min-width:768px){ .cf__caveat{font-size:13px} }
+.cf__caveat b{font-weight:600}
+.cf figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
+  padding-top:14px;border-top:1px solid var(--rule)}
+@media(min-width:768px){ .cf figcaption{font-size:13px} }
+
+@media(max-width:980px){ .cf__panes{grid-template-columns:minmax(0,1fr)} }
+</style>
   
   <!-- Defer non-critical JavaScript -->
   <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -1246,6 +1322,360 @@
 })();
 </script>
 <!-- End interactive alignment figure -->
+
+<!-- Counterfactual scene viewer -->
+<section class="hero is-small">
+  <div class="hero-body" style="padding:0">
+    <div class="cf"><div class="cf__grid">
+      <h2>Does the feature respond to what the model sees?</h2>
+      <p>The sliders show that driving a latent changes the plan. This asks the other
+         direction: edit the <em>image</em>, and see whether the latents move and the plan
+         follows. Each example is a real paired edit — the same frame, minimally altered —
+         pushed through the same planner.</p>
+
+      <figure class="cf__fig cf__breakout">
+        <div class="cf__chips" id="cf-dirs"></div>
+
+        <div class="cf__panes">
+          <div class="cf__pane">
+            <h3>Scene</h3>
+            <div class="cf__scene">
+              <img id="cf-img" alt="Forward camera frame, original or counterfactually edited">
+              <canvas id="cf-diff"></canvas>
+              <div class="cf__badge" id="cf-badge">Original</div>
+            </div>
+            <div class="cf__scenebar">
+              <button type="button" class="cf__btn" id="cf-toggle">Show edited</button>
+              <button type="button" class="cf__btn" id="cf-diffbtn" aria-pressed="false">Highlight change</button>
+            </div>
+            <div class="cf__prompt" id="cf-prompt"></div>
+            <p class="cf__caveat" id="cf-caveat" hidden></p>
+          </div>
+
+          <div class="cf__pane">
+            <h3>Internal representation</h3>
+            <svg id="cf-bars" viewBox="0 0 320 250" aria-label="Largest latent activation changes"></svg>
+          </div>
+
+          <div class="cf__pane">
+            <h3>Planner output</h3>
+            <div class="cf__plan"><svg id="cf-plan" viewBox="0 0 250 300" aria-label="Planned trajectory before and after the edit"></svg></div>
+          </div>
+        </div>
+
+        <div class="cf__nav">
+          <button type="button" class="cf__btn" id="cf-prev">Previous</button>
+          <button type="button" class="cf__btn" id="cf-next">Next</button>
+          <span class="cf__count" id="cf-count"></span>
+          <span style="flex:1 1 auto"></span>
+          <span class="cf__key"><i style="background:#2f6c9f"></i>original</span>
+          <span class="cf__key"><i style="background:#b94a48"></i>edited</span>
+        </div>
+
+        <figcaption id="cf-cap"></figcaption>
+      </figure>
+    </div></div>
+  </div>
+</section>
+
+<script data-assets="static/sae/">
+(function () {
+  "use strict";
+  var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
+  var NS = 'http://www.w3.org/2000/svg';
+  var D = null, cur = 0, dir = null, showEdited = false, showDiff = false;
+  var list = [];
+
+  function el(t, a) {
+    var e = document.createElementNS(NS, t);
+    for (var k in a) if (a[k] !== null && a[k] !== undefined) e.setAttribute(k, a[k]);
+    return e;
+  }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function ex() { return list[cur]; }
+
+  // ── scene ───────────────────────────────────────────────────────────────
+  var imgEl = document.getElementById('cf-img');
+  var cv = document.getElementById('cf-diff');
+
+  function srcFor(e, edited) {
+    return ASSETS + 'cf/' + e.stem + (edited ? '_e' : '_o') + '.jpg';
+  }
+  function paintScene() {
+    var e = ex();
+    imgEl.src = srcFor(e, showEdited);
+    imgEl.width = e.img_w; imgEl.height = e.img_h;
+    document.getElementById('cf-badge').textContent = showEdited ? 'Edited' : 'Original';
+    document.getElementById('cf-toggle').textContent =
+      showEdited ? 'Show original' : 'Show edited';
+    document.getElementById('cf-prompt').textContent = e.prompt || '';
+    // Mark the examples that were judged borderline rather than clean, and say what the
+    // reservation is. Showing them unlabelled beside the clean ones would misrepresent
+    // how far each one was actually vouched for.
+    var cav = document.getElementById('cf-caveat');
+    if (e.verdict === 'BORDERLINE' && e.caveat) {
+      cav.textContent = '';
+      var lead = document.createElement('b');
+      lead.textContent = 'Shown with a reservation. ';
+      cav.appendChild(lead);
+      cav.appendChild(document.createTextNode(
+        'The scene around the edit is intact, but ' + e.caveat + '.'));
+      cav.hidden = false;
+    } else {
+      cav.hidden = true;
+    }
+    if (showDiff) renderDiff(e);
+    else { diffToken++; cv.classList.remove('on'); }
+  }
+
+  // the change mask is computed in the browser from the two images, so nothing
+  // about "what changed" is asserted by hand
+  //
+  // Each render carries a token. Both images load asynchronously, and the viewer can
+  // move to another example or switch the highlight off while they are still in
+  // flight; without the token that stale callback would paint its own mask over
+  // whatever scene is now showing, and re-enable the overlay after it was turned off.
+  var diffToken = 0;
+  function renderDiff(e) {
+    var token = ++diffToken;
+    var a = new Image(), b = new Image(), done = 0;
+    a.crossOrigin = b.crossOrigin = 'anonymous';
+    function go() {
+      if (++done < 2) return;
+      if (token !== diffToken || !showDiff || ex() !== e) return;
+      var w = e.img_w, h = e.img_h;
+      cv.width = w; cv.height = h;
+      var c = cv.getContext('2d');
+      c.drawImage(a, 0, 0, w, h); var A = c.getImageData(0, 0, w, h);
+      c.clearRect(0, 0, w, h);
+      c.drawImage(b, 0, 0, w, h); var B = c.getImageData(0, 0, w, h);
+      var out = c.createImageData(w, h), pa = A.data, pb = B.data, po = out.data;
+      for (var i = 0; i < pa.length; i += 4) {
+        var d = (Math.abs(pa[i] - pb[i]) + Math.abs(pa[i+1] - pb[i+1])
+                 + Math.abs(pa[i+2] - pb[i+2])) / 3;
+        var on = d > 26;                       // above JPEG re-encoding noise
+        po[i] = 185; po[i+1] = 74; po[i+2] = 72;
+        po[i+3] = on ? Math.min(190, 70 + d * 1.6) : 0;
+      }
+      c.putImageData(out, 0, 0);
+      cv.classList.add('on');
+    }
+    a.onload = b.onload = go;
+    a.src = srcFor(e, false); b.src = srcFor(e, true);
+  }
+
+  // ── internal representation ─────────────────────────────────────────────
+  function paintBars() {
+    var svg = document.getElementById('cf-bars'); clear(svg);
+    var e = ex(), f = e.feats, W = 320, rowH = 22, padL = 56, padR = 14, top = 16;
+    var maxAbs = 0;
+    f.forEach(function (x) { maxAbs = Math.max(maxAbs, Math.abs(x.d)); });
+    maxAbs = Math.max(maxAbs, 1e-6);
+    var midX = padL + (W - padL - padR) / 2;
+    var half = (W - padL - padR) / 2;
+
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (top + f.length * rowH + 22));
+    svg.appendChild(el('line', { x1: midX, x2: midX, y1: top - 6,
+      y2: top + f.length * rowH, stroke: '#9EA5B1', 'stroke-width': 1 }));
+
+    f.forEach(function (x, i) {
+      var y = top + i * rowH, w = Math.abs(x.d) / maxAbs * half * 0.94;
+      var pos = x.d >= 0;
+      svg.appendChild(el('rect', { x: pos ? midX : midX - w, y: y + 4,
+        width: Math.max(w, 0.6), height: rowH - 10,
+        fill: pos ? '#2f6c9f' : '#c45a2a', 'fill-opacity': .85 }));
+      var lab = el('text', { x: padL - 8, y: y + rowH / 2 + 3, 'text-anchor': 'end',
+        'font-family': 'Consolas,monospace', 'font-size': 11, fill: 'rgba(0,0,0,.6)' });
+      lab.textContent = x.f;
+      svg.appendChild(lab);
+      var val = el('text', { x: pos ? midX + w + 5 : midX - w - 5, y: y + rowH / 2 + 3,
+        'text-anchor': pos ? 'start' : 'end', 'font-family': 'Consolas,monospace',
+        'font-size': 10.5, fill: 'rgba(0,0,0,.45)' });
+      val.textContent = (x.d >= 0 ? '+' : '−') + Math.abs(x.d).toFixed(2);
+      svg.appendChild(val);
+    });
+    var cap = el('text', { x: midX, y: top + f.length * rowH + 15, 'text-anchor': 'middle',
+      'font-family': 'Consolas,monospace', 'font-size': 10.5, fill: 'rgba(0,0,0,.4)' });
+    cap.textContent = 'Δz, scale units · latent id at left';
+    svg.appendChild(cap);
+  }
+
+  // ── planner output ──────────────────────────────────────────────────────
+  var PW = 250, PH = 300, PT = 16, PB = 16;
+
+  // The window is fitted per example, not fixed. These plans differ enormously in
+  // extent - one reaches 67 m ahead, another swings 21 m laterally, while several
+  // barely move at all - so a single window either clips the long ones or shrinks
+  // the short ones to a dot. A fixed 55 m by +/-12 m frame cut the tails off 5 of
+  // the 12 examples, hiding exactly the divergence this panel exists to show.
+  function planBounds(e) {
+    var all = e.traj_o.concat(e.traj_e), fwd = 0, lat = 0, i;
+    for (i = 0; i < all.length; i++) {
+      if (all[i][0] > fwd) fwd = all[i][0];
+      if (Math.abs(all[i][1]) > lat) lat = Math.abs(all[i][1]);
+    }
+    // headroom so the last waypoint is not drawn on the frame edge, and a floor so
+    // a near-stationary plan is not magnified until resample noise looks like a turn
+    return { fwd: Math.max(fwd * 1.14, 10), lat: Math.max(lat * 1.18, 3) };
+  }
+  function gridStep(span) {
+    return span <= 14 ? 2 : span <= 30 ? 5 : span <= 70 ? 10 : 20;
+  }
+
+  function paintPlan() {
+    var svg = document.getElementById('cf-plan'); clear(svg);
+    var e = ex(), B = planBounds(e);
+    var FWD = B.fwd, LAT = B.lat;
+    function px(y) { return PW / 2 - (y / LAT) * (PW / 2 - 10); }
+    function py(x) { return PH - PB - (x / FWD) * (PH - PT - PB); }
+
+    var step = gridStep(FWD);
+    for (var m = step; m <= FWD; m += step) {
+      svg.appendChild(el('line', { x1: 8, x2: PW - 8, y1: py(m), y2: py(m),
+        stroke: '#D8DCE2', 'stroke-width': 1 }));
+      var t = el('text', { x: 11, y: py(m) - 3, 'font-family': 'Consolas,monospace',
+        'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
+      t.textContent = m + ' m'; svg.appendChild(t);
+    }
+    // lateral reference lines, so a wide swing reads as distance rather than as a
+    // rescaled version of a narrow one
+    var ls = gridStep(LAT * 2);
+    for (var k = ls; k <= LAT; k += ls) {
+      [-k, k].forEach(function (v) {
+        svg.appendChild(el('line', { x1: px(v), x2: px(v), y1: PT, y2: PH - PB,
+          stroke: '#E9ECF0', 'stroke-width': 1 }));
+      });
+    }
+    svg.appendChild(el('line', { x1: px(0), x2: px(0), y1: PT, y2: PH - PB,
+      stroke: '#c3c9d2', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
+
+    var sc = el('text', { x: PW - 8, y: PT + 9, 'text-anchor': 'end',
+      'font-family': 'Consolas,monospace', 'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
+    sc.textContent = '\u00b1' + (LAT < 10 ? LAT.toFixed(1) : Math.round(LAT)) + ' m';
+    svg.appendChild(sc);
+
+    function path(tr) {
+      return tr.map(function (p, i) {
+        return (i ? 'L' : 'M') + px(p[1]).toFixed(1) + ' ' + py(p[0]).toFixed(1);
+      }).join(' ');
+    }
+    svg.appendChild(el('path', { d: path(e.traj_o), fill: 'none', stroke: '#2f6c9f',
+      'stroke-width': showEdited ? 1.6 : 2.6, 'stroke-opacity': showEdited ? .5 : 1,
+      'stroke-linecap': 'round' }));
+    svg.appendChild(el('path', { d: path(e.traj_e), fill: 'none', stroke: '#b94a48',
+      'stroke-width': showEdited ? 2.6 : 1.6, 'stroke-opacity': showEdited ? 1 : .5,
+      'stroke-linecap': 'round' }));
+    svg.appendChild(el('path', { d: 'M' + (PW/2 - 4) + ' ' + (PH - PB) + 'L' + (PW/2) + ' '
+      + (PH - PB - 7) + 'L' + (PW/2 + 4) + ' ' + (PH - PB) + 'Z', fill: '#16191e' }));
+  }
+
+
+  function paintAll() {
+    paintScene(); paintBars(); paintPlan();
+    document.getElementById('cf-count').textContent =
+      (cur + 1) + ' of ' + list.length + ' · ' + ex().name;
+    document.getElementById('cf-prev').disabled = cur === 0;
+    document.getElementById('cf-next').disabled = cur === list.length - 1;
+  }
+
+  function setDir(k) {
+    dir = k; list = D.examples.filter(function (e) { return e.dir === k; });
+    cur = 0; showEdited = false; showDiff = false;
+    document.getElementById('cf-diffbtn').setAttribute('aria-pressed', 'false');
+    Array.prototype.forEach.call(document.getElementById('cf-dirs').children,
+      function (b) { b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'); });
+    paintAll();
+  }
+
+  function boot(data) {
+    D = data;
+    var host = document.getElementById('cf-dirs');
+    D.directions.forEach(function (d) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cf__chip'; b.dataset.k = d.key;
+      b.textContent = d.label;
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () { setDir(d.key); });
+      host.appendChild(b);
+    });
+    document.getElementById('cf-toggle').addEventListener('click', function () {
+      showEdited = !showEdited; paintScene(); paintPlan();
+    });
+    document.getElementById('cf-diffbtn').addEventListener('click', function () {
+      showDiff = !showDiff;
+      this.setAttribute('aria-pressed', showDiff ? 'true' : 'false');
+      paintScene();
+    });
+    document.getElementById('cf-prev').addEventListener('click', function () {
+      if (cur > 0) { cur--; showEdited = false; paintAll(); } });
+    document.getElementById('cf-next').addEventListener('click', function () {
+      if (cur < list.length - 1) { cur++; showEdited = false; paintAll(); } });
+
+    // Say how these examples were chosen. Most edits in this set are not usable: the
+    // editor frequently relit the scene, re-lettered nearby signs, deleted mid-ground
+    // traffic, or removed the very pedestrian it was asked to add. Showing the few that
+    // survived without saying so would imply they are typical, and they are not.
+    function prov() {
+      var a = D.audit;
+      if (!a) return '';
+      var w = (D.withheld || []).reduce(function (n, x) { return n + x.n; }, 0);
+      // Spelled out rather than given as three totals: a first pass that returns both
+      // clean and borderline verdicts does not let the reader subtract one from the
+      // other, and an earlier wording invited exactly that and left six pairs
+      // unaccounted for.
+      var txt = ' <b>How these were chosen.</b> Every one of the ' + a.total + ' edited '
+        + 'pairs was inspected for whether the editor changed only what it was asked to '
+        + 'change. A first pass judged ' + a.first_pass_clean + ' of them clean and '
+        + a.first_pass_borderline + ' borderline, rejecting the rest. A second, '
+        + 'independent pass re-examined all ' + a.first_pass_survivors + ' and overturned '
+        + a.overturned_on_second_pass + ', mostly for collateral the first had missed; of '
+        + 'those left standing, ' + a.still_borderline + ' remained merely borderline. '
+        + 'That leaves ' + a.survived_both + ' pairs judged clean by both.';
+      if (a.shown_borderline) {
+        txt += ' ' + a.shown_clean + ' of those are shown here, together with '
+          + a.shown_borderline + ' borderline pairs picked out by hand: in each the '
+          + 'surrounding scene is intact and the reservation is about the inserted '
+          + 'figure itself, and each is marked where it appears.';
+      }
+      if (w) {
+        txt += (w === 1 ? ' One further pair is' : ' A further ' + w + ' pairs are')
+          + ' withheld here: '
+          + (D.withheld || []).map(function (x) {
+              return (x.label || x.key) + ', because ' + x.reason;
+            }).join('; ')
+          + '. That leaves the ' + a.shown + ' shown.';
+      }
+      return txt + ' They are the exception rather than a representative sample: the '
+        + 'editor re-renders small legible text almost everywhere it appears, so the pairs '
+        + 'that survive are disproportionately scenes that contain none. The pooled '
+        + 'statistics in the alignment figure are computed over all pairs, not this subset.';
+    }
+
+    document.getElementById('cf-cap').innerHTML =
+      'Paired counterfactual edits on validation frames: the same scene, minimally '
+      + 'altered by an image editor, with the prompt shown under the image. '
+      + '<b>Δz</b> is each latent’s change in per-feature scale units — the same '
+      + 'normalisation the alignment figure uses on its x axis — and the ten largest are '
+      + 'drawn. Both trajectories are decoded here from the paired planner tokens by the '
+      + 'same checkpoint the steering figure uses, and the path drawn is the one the '
+      + 'planner would execute. "Highlight change" is a pixel difference computed in your '
+      + 'browser from the two images, not a hand-drawn annotation, so it also shows where '
+      + 'the editor altered things it was asked to leave alone.'
+      + prov();
+
+    setDir(D.directions[0].key);
+  }
+
+  if (window.__CF_DATA__) boot(window.__CF_DATA__);
+  else fetch(ASSETS + 'counterfactual.json').then(function (r) { return r.json(); })
+    .then(boot).catch(function (e) {
+      document.getElementById('cf-cap').textContent =
+        'Could not load counterfactual.json (' + e.message + '). Serve this directory '
+        + 'over HTTP, or open standalone_counterfactual.html.';
+    });
+})();
+</script>
+<!-- End counterfactual scene viewer -->
 
 <!-- Youtube video (disabled)
 <section class="hero is-small is-light">
