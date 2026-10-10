@@ -431,10 +431,7 @@
 .cf__key{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
 .cf__key i{width:18px;height:3px;display:inline-block}
 
-.cf__caveat{margin:8px 0 0;font-size:12.5px;line-height:1.5em;color:var(--ink);
-  padding:7px 10px;border-left:2px solid #AD7814;background:rgba(173,120,20,.07)}
-@media(min-width:768px){ .cf__caveat{font-size:13px} }
-.cf__caveat b{font-weight:600}
+.cf figcaption:empty{display:none}
 .cf figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
   padding-top:14px;border-top:1px solid var(--rule)}
 @media(min-width:768px){ .cf figcaption{font-size:13px} }
@@ -1349,7 +1346,6 @@
               <button type="button" class="cf__btn" id="cf-diffbtn" aria-pressed="false">Highlight change</button>
             </div>
             <div class="cf__prompt" id="cf-prompt"></div>
-            <p class="cf__caveat" id="cf-caveat" hidden></p>
           </div>
 
           <div class="cf__pane">
@@ -1408,21 +1404,13 @@
     document.getElementById('cf-badge').textContent = showEdited ? 'Edited' : 'Original';
     document.getElementById('cf-toggle').textContent =
       showEdited ? 'Show original' : 'Show edited';
-    document.getElementById('cf-prompt').textContent = e.prompt || '';
-    // Mark the examples that were judged borderline rather than clean, and say what the
-    // reservation is. Showing them unlabelled beside the clean ones would misrepresent
-    // how far each one was actually vouched for.
-    var cav = document.getElementById('cf-caveat');
-    if (e.verdict === 'BORDERLINE' && e.caveat) {
-      cav.textContent = '';
-      var lead = document.createElement('b');
-      lead.textContent = 'Shown with a reservation. ';
-      cav.appendChild(lead);
-      cav.appendChild(document.createTextNode(
-        'The scene around the edit is intact, but ' + e.caveat + '.'));
-      cav.hidden = false;
-    } else {
-      cav.hidden = true;
+    var pr = document.getElementById('cf-prompt');
+    pr.textContent = '';
+    if (e.prompt) {
+      var pl = document.createElement('b');
+      pl.textContent = 'Prompt: ';
+      pr.appendChild(pl);
+      pr.appendChild(document.createTextNode(e.prompt));
     }
     if (showDiff) renderDiff(e);
     else { diffToken++; cv.classList.remove('on'); }
@@ -1610,58 +1598,6 @@
       if (cur > 0) { cur--; showEdited = false; paintAll(); } });
     document.getElementById('cf-next').addEventListener('click', function () {
       if (cur < list.length - 1) { cur++; showEdited = false; paintAll(); } });
-
-    // Say how these examples were chosen. Most edits in this set are not usable: the
-    // editor frequently relit the scene, re-lettered nearby signs, deleted mid-ground
-    // traffic, or removed the very pedestrian it was asked to add. Showing the few that
-    // survived without saying so would imply they are typical, and they are not.
-    function prov() {
-      var a = D.audit;
-      if (!a) return '';
-      var w = (D.withheld || []).reduce(function (n, x) { return n + x.n; }, 0);
-      // Spelled out rather than given as three totals: a first pass that returns both
-      // clean and borderline verdicts does not let the reader subtract one from the
-      // other, and an earlier wording invited exactly that and left six pairs
-      // unaccounted for.
-      var txt = ' <b>How these were chosen.</b> Every one of the ' + a.total + ' edited '
-        + 'pairs was inspected for whether the editor changed only what it was asked to '
-        + 'change. A first pass judged ' + a.first_pass_clean + ' of them clean and '
-        + a.first_pass_borderline + ' borderline, rejecting the rest. A second, '
-        + 'independent pass re-examined all ' + a.first_pass_survivors + ' and overturned '
-        + a.overturned_on_second_pass + ', mostly for collateral the first had missed; of '
-        + 'those left standing, ' + a.still_borderline + ' remained merely borderline. '
-        + 'That leaves ' + a.survived_both + ' pairs judged clean by both.';
-      if (a.shown_borderline) {
-        txt += ' ' + a.shown_clean + ' of those are shown here, together with '
-          + a.shown_borderline + ' borderline pairs picked out by hand: in each the '
-          + 'surrounding scene is intact and the reservation is about the inserted '
-          + 'figure itself, and each is marked where it appears.';
-      }
-      if (w) {
-        txt += (w === 1 ? ' One further pair is' : ' A further ' + w + ' pairs are')
-          + ' withheld here: '
-          + (D.withheld || []).map(function (x) {
-              return (x.label || x.key) + ', because ' + x.reason;
-            }).join('; ')
-          + '. That leaves the ' + a.shown + ' shown.';
-      }
-      return txt + ' They are the exception rather than a representative sample: the '
-        + 'editor re-renders small legible text almost everywhere it appears, so the pairs '
-        + 'that survive are disproportionately scenes that contain none. The pooled '
-        + 'statistics in the alignment figure are computed over all pairs, not this subset.';
-    }
-
-    document.getElementById('cf-cap').innerHTML =
-      'Paired counterfactual edits on validation frames: the same scene, minimally '
-      + 'altered by an image editor, with the prompt shown under the image. '
-      + '<b>Δz</b> is each latent’s change in per-feature scale units — the same '
-      + 'normalisation the alignment figure uses on its x axis — and the ten largest are '
-      + 'drawn. Both trajectories are decoded here from the paired planner tokens by the '
-      + 'same checkpoint the steering figure uses, and the path drawn is the one the '
-      + 'planner would execute. "Highlight change" is a pixel difference computed in your '
-      + 'browser from the two images, not a hand-drawn annotation, so it also shows where '
-      + 'the editor altered things it was asked to leave alone.'
-      + prov();
 
     setDir(D.directions[0].key);
   }
