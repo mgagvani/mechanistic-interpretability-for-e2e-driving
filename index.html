@@ -431,6 +431,10 @@
 .cf__key{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
 .cf__key i{width:18px;height:3px;display:inline-block}
 
+.cf__caveat{margin:8px 0 0;font-size:12.5px;line-height:1.5em;color:var(--ink);
+  padding:7px 10px;border-left:2px solid #AD7814;background:rgba(173,120,20,.07)}
+@media(min-width:768px){ .cf__caveat{font-size:13px} }
+.cf__caveat b{font-weight:600}
 .cf figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
   padding-top:14px;border-top:1px solid var(--rule)}
 @media(min-width:768px){ .cf figcaption{font-size:13px} }
@@ -1345,6 +1349,7 @@
               <button type="button" class="cf__btn" id="cf-diffbtn" aria-pressed="false">Highlight change</button>
             </div>
             <div class="cf__prompt" id="cf-prompt"></div>
+            <p class="cf__caveat" id="cf-caveat" hidden></p>
           </div>
 
           <div class="cf__pane">
@@ -1404,6 +1409,21 @@
     document.getElementById('cf-toggle').textContent =
       showEdited ? 'Show original' : 'Show edited';
     document.getElementById('cf-prompt').textContent = e.prompt || '';
+    // Mark the examples that were judged borderline rather than clean, and say what the
+    // reservation is. Showing them unlabelled beside the clean ones would misrepresent
+    // how far each one was actually vouched for.
+    var cav = document.getElementById('cf-caveat');
+    if (e.verdict === 'BORDERLINE' && e.caveat) {
+      cav.textContent = '';
+      var lead = document.createElement('b');
+      lead.textContent = 'Shown with a reservation. ';
+      cav.appendChild(lead);
+      cav.appendChild(document.createTextNode(
+        'The scene around the edit is intact, but ' + e.caveat + '.'));
+      cav.hidden = false;
+    } else {
+      cav.hidden = true;
+    }
     if (showDiff) renderDiff(e);
     else { diffToken++; cv.classList.remove('on'); }
   }
@@ -1611,6 +1631,12 @@
         + a.overturned_on_second_pass + ', mostly for collateral the first had missed; of '
         + 'those left standing, ' + a.still_borderline + ' remained merely borderline. '
         + 'That leaves ' + a.survived_both + ' pairs judged clean by both.';
+      if (a.shown_borderline) {
+        txt += ' ' + a.shown_clean + ' of those are shown here, together with '
+          + a.shown_borderline + ' borderline pairs picked out by hand: in each the '
+          + 'surrounding scene is intact and the reservation is about the inserted '
+          + 'figure itself, and each is marked where it appears.';
+      }
       if (w) {
         txt += (w === 1 ? ' One further pair is' : ' A further ' + w + ' pairs are')
           + ' withheld here: '
