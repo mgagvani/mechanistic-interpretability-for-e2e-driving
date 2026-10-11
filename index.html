@@ -314,9 +314,11 @@
 .tl__spacer{flex:1 1 auto}
 .tl__rate{font-size:11.5px;color:var(--faint)}
 
-.tl__track{position:relative;border:1px solid var(--rule);background:var(--surface);
-  cursor:crosshair;touch-action:none;user-select:none}
-.tl__track canvas{display:block;width:100%;height:auto}
+.tl__track{border:1px solid var(--rule);background:var(--surface);
+  cursor:crosshair;user-select:none;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch}
+.tl__inner{position:relative}
+.tl__track canvas{display:block}
 .tl__head{position:absolute;top:0;bottom:0;width:1px;background:var(--warm);
   pointer-events:none}
 .tl__head::after{content:"";position:absolute;top:0;left:-3px;border-left:3.5px solid transparent;
@@ -1110,8 +1112,10 @@
 
       <div class="tl__track" id="tl-track" tabindex="0" role="slider"
            aria-label="Scrub the clip" aria-valuemin="0" aria-valuenow="0">
-        <canvas id="tl-canvas" width="1800" height="460"></canvas>
-        <div class="tl__head" id="tl-headline"></div>
+        <div class="tl__inner" id="tl-inner">
+          <canvas id="tl-canvas"></canvas>
+          <div class="tl__head" id="tl-headline"></div>
+        </div>
       </div>
       <div class="tl__tip" id="tl-tip" hidden></div>
 
@@ -1155,7 +1159,12 @@
   var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
   var D = null, W = null, i = 0, playing = false, timer = null, drag = false, showGT = false;
   var PLAN = '#2f6c9f', TRUTH = '#b94a48';
-  var ROWH = 46, FILMH = 92, LABW = 128, PAD = 8;
+  // All in CSS pixels. The canvas used to carry a fixed 1800-pixel backing store with
+  // text sized for it, which meant everything shrank with the element: at a 390 px
+  // viewport a 20 px row label rendered at 4.3 px. The backing store is now sized from
+  // the element and a device-pixel ratio, and the track scrolls below MINW rather than
+  // squashing.
+  var ROWH = 46, FILMH = 92, LABW = 128, MINW = 580;
 
   function $(id) { return document.getElementById(id); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -1260,12 +1269,16 @@
     $('tl-hud-ade').textContent = 'ADE ' + W.ade[i].toFixed(2) + ' m';
     $('tl-time').textContent = (i * W.dt).toFixed(2) + ' / ' + ((W.n - 1) * W.dt).toFixed(2) + ' s';
     $('tl-track').setAttribute('aria-valuenow', i);
-    $('tl-headline').style.left = (LABW + (i + 0.5) / W.n * (trackW() - LABW)) + 'px';
+    $('tl-headline').style.left =
+      (LABW + (i + 0.5) / W.n * (designW() - LABW)) + 'px';
     drawOverlay();
     drawBev();
   }
 
-  function trackW() { return $('tl-track').getBoundingClientRect().width; }
+  // the drawing width: the element's, or MINW with the track scrolling under it
+  function designW() {
+    return Math.max($('tl-track').clientWidth || MINW, MINW);
+  }
 
   function drawBev() {
     var c = $('tl-bev'), g = c.getContext('2d');
@@ -1325,47 +1338,58 @@
     g.fillText('±' + LAT + ' m', 14, H - 12);
   }
 
+  var trackToken = 0;
+
   function drawTrack() {
     var c = $('tl-canvas'), g = c.getContext('2d');
-    var rows = Object.keys(W.acts);
-    c.width = 1800;
-    c.height = FILMH + rows.length * ROWH + 22;
+    var rows = W.acts;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var Wd = designW();
+    var Hd = FILMH + rows.length * ROWH + 22;
+    c.style.width = Wd + 'px';
+    c.style.height = Hd + 'px';
+    c.width = Math.round(Wd * dpr);
+    c.height = Math.round(Hd * dpr);
+    $('tl-inner').style.width = Wd + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     var css = getComputedStyle(document.querySelector('.tl'));
     var surface = css.getPropertyValue('--surface') || '#fff';
     var ink = css.getPropertyValue('--ink') || '#000';
     var faint = css.getPropertyValue('--faint') || '#888';
     var rule = css.getPropertyValue('--rule') || '#ddd';
-    g.fillStyle = surface; g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = surface; g.fillRect(0, 0, Wd, Hd);
 
-    var x0 = LABW * (c.width / trackW());
-    var W0 = c.width - x0;
-    var cw = W0 / W.n;
+    var x0 = LABW, W0 = Wd - LABW, cw = W0 / W.n;
 
-    // filmstrip: a thumbnail every few frames, drawn from the sprite
+    // A sprite is 1.5 to 2.4 MB. Switching tabs before one arrives used to let the old
+    // load paint thumbnails from the previous drive, sized by the previous clip, over
+    // the new one. The token makes a late arrival a no-op.
+    var token = ++trackToken;
+    var clip = W;
     var img = new Image();
     img.onload = function () {
-      var step = Math.max(1, Math.round(W.n / 26));
-      var tw = W.tile[0], th = W.tile[1];
+      if (token !== trackToken || clip !== W) return;
+      var step = Math.max(1, Math.round(clip.n / 26));
+      var tw = clip.tile[0], th = clip.tile[1];
       var dw = step * cw, dh = FILMH;
-      for (var k = 0; k < W.n; k += step) {
-        var sx = (k % W.cols) * tw, sy = Math.floor(k / W.cols) * th;
+      for (var k = 0; k < clip.n; k += step) {
+        var sx = (k % clip.cols) * tw, sy = Math.floor(k / clip.cols) * th;
         var sw = Math.min(tw, tw * (dw / (dh * tw / th)));
-        g.drawImage(img, sx + (tw - sw) / 2, sy, sw, th,
-                    x0 + k * cw, 0, dw, dh);
+        g.drawImage(img, sx + (tw - sw) / 2, sy, sw, th, x0 + k * cw, 0, dw, dh);
       }
       g.strokeStyle = rule; g.lineWidth = 1;
       g.strokeRect(x0, 0, W0, FILMH);
-      paintRows(g, c, x0, W0, cw, rows, css, ink, faint, rule, surface);
+      paintRows(g, Wd, Hd, x0, W0, cw, rows, css, ink, faint, rule, surface);
     };
-    img.src = ASSETS + W.sheet;
+    img.src = ASSETS + clip.sheet;
   }
 
-  function paintRows(g, c, x0, W0, cw, rows, css, ink, faint, rule, surface) {
+  function paintRows(g, Wd, Hd, x0, W0, cw, rows, css, ink, faint, rule, surface) {
     g.textBaseline = 'middle';
-    rows.forEach(function (key, r) {
-      var A = W.acts[key];
+    rows.forEach(function (A, r) {
       var y = FILMH + r * ROWH;
-      g.fillStyle = surface; g.fillRect(0, y, c.width, ROWH);
+      g.fillStyle = surface; g.fillRect(0, y, Wd, ROWH);
       for (var k = 0; k < W.n; k++) {
         var t = Math.max(0, A.v[k]) / (A.vmax || 1);
         g.fillStyle = 'rgba(47,108,159,' + (0.06 + 0.94 * Math.pow(t, 0.75)).toFixed(3) + ')';
@@ -1374,54 +1398,54 @@
       }
       g.strokeStyle = rule; g.lineWidth = 1;
       g.strokeRect(x0, y + 6, W0, ROWH - 12);
-      // An all-zero row is a result, not missing data: the car held its speed through
-      // both turns, so the brake latent never fires. Say so rather than leave a blank
-      // band that reads as a loading failure.
       if (!A.v.some(function (x) { return x > 0; })) {
         g.fillStyle = faint;
-        g.font = 'italic 17px ' + (css.getPropertyValue('--sans') || 'sans-serif');
-        g.fillText('silent throughout this clip', x0 + 12, y + ROWH / 2);
+        g.font = 'italic 11px ' + (css.getPropertyValue('--sans') || 'sans-serif');
+        g.fillText('silent throughout this clip', x0 + 10, y + ROWH / 2);
       }
       g.fillStyle = ink;
-      g.font = '600 20px ' + (css.getPropertyValue('--sans') || 'sans-serif');
-      g.fillText(A.label, 10, y + ROWH / 2 - 7);
+      g.font = '600 13px ' + (css.getPropertyValue('--sans') || 'sans-serif');
+      g.fillText(A.label, 8, y + ROWH / 2 - 7);
       g.fillStyle = faint;
-      g.font = '17px ' + (css.getPropertyValue('--mono') || 'monospace');
-      g.fillText('latent ' + A.id, 10, y + ROWH / 2 + 12);
+      g.font = '11px ' + (css.getPropertyValue('--mono') || 'monospace');
+      g.fillText('latent ' + A.id, 8, y + ROWH / 2 + 9);
     });
-    // seconds along the bottom
     var y2 = FILMH + rows.length * ROWH;
     g.fillStyle = faint;
-    g.font = '16px ' + (css.getPropertyValue('--mono') || 'monospace');
+    g.font = '11px ' + (css.getPropertyValue('--mono') || 'monospace');
     var tick = (W.n * W.dt) > 40 ? 10 : 5;
-    for (var s = 0; s <= (W.n - 1) * W.dt; s += tick) {
-      var X = x0 + (s / W.dt) * cw;
+    for (var s2 = 0; s2 <= (W.n - 1) * W.dt; s2 += tick) {
+      var X = x0 + (s2 / W.dt) * cw;
       g.fillRect(X, y2 + 2, 1, 5);
-      g.fillText(s + 's', X + 4, y2 + 12);
+      g.fillText(s2 + 's', X + 4, y2 + 12);
     }
   }
 
-  function seekFromEvent(e) {
-    var r = $('tl-track').getBoundingClientRect();
+  // x is measured against the canvas, not the scroll container, so scrubbing stays
+  // correct once the track is wide enough to scroll
+  function fracFromEvent(e) {
+    var r = $('tl-canvas').getBoundingClientRect();
     var x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-    var f = (x - LABW) / (r.width - LABW);
-    showFrame(Math.round(f * (W.n - 1)));
+    return (x - LABW) / (designW() - LABW);
+  }
+
+  function seekFromEvent(e) {
+    showFrame(Math.round(fracFromEvent(e) * (W.n - 1)));
   }
 
   function hover(e) {
     var tip = $('tl-tip');
-    var r = $('tl-track').getBoundingClientRect();
-    var x = (e.clientX - r.left - LABW) / (r.width - LABW);
+    var r = $('tl-canvas').getBoundingClientRect();
+    var x = fracFromEvent(e);
     var y = e.clientY - r.top;
-    var scale = r.width / 1800;
-    var rows = Object.keys(W.acts);
-    var ri = Math.floor((y / scale - FILMH) / ROWH);
+    var rows = W.acts;
+    var ri = Math.floor((y - FILMH) / ROWH);
     if (x < 0 || x > 1 || ri < 0 || ri >= rows.length) { tip.hidden = true; return; }
     var k = clamp(Math.round(x * (W.n - 1)), 0, W.n - 1);
-    var A = W.acts[rows[ri]];
+    var A = rows[ri];
     tip.textContent = '';
     var b = document.createElement('b');
-    b.textContent = A.label + '  ·  latent ' + A.id;
+    b.textContent = A.label + '  \u00b7  latent ' + A.id;
     tip.appendChild(b);
     tip.appendChild(document.createElement('br'));
     tip.appendChild(document.createTextNode(
