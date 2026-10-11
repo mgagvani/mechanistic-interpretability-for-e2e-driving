@@ -6,13 +6,13 @@
   
   <!-- Primary Meta Tags -->
   <!-- TODO: Replace with your paper title and author names -->
-  <meta name="title" content="Mechanistic Interpretability for End-to-End Self-Driving - Manav Gagvani, Benjamin Namikas, Sivamurugan Velmurugan, Nysa Kumar, Shrey Sharma, Thomas Joseph Peterson, Pratyush Mathur, Hyunseo Chang, Rohan Paleja">
+  <meta name="title" content="Mechanistic Interpretability for End-to-End Self-Driving - Manav Gagvani, Benjamin Namikas, Sivamurugan Velmurugan, Nysa Kumar, Shrey Sharma, Thomas Peterson, Pratyush Mathur, Hyunseo Chang, Rohan Paleja">
   <!-- TODO: Write a compelling 150-160 character description of your research -->
-  <meta name="description" content="BRIEF_DESCRIPTION_OF_YOUR_RESEARCH_CONTRIBUTION_AND_FINDINGS">
+  <meta name="description" content="We apply sparse autoencoders (SAEs) to an E2E planning model, uncovering interpretable features aligned with driving intent and visual landmarks. We show that steering these latents predictably changes planned trajectories, and show that SAE features can be used to improve planning performance (CoRL 2026).">
   <!-- TODO: Add 5-10 relevant keywords for your research area -->
   <meta name="keywords" content="End-to-end driving, Mechanistic interpretability">
   <!-- TODO: List all authors -->
-  <meta name="author" content="Manav Gagvani, Benjamin Namikas, Sivamurugan Velmurugan, Nysa Kumar, Shrey Sharma, Thomas Joseph Peterson, Pratyush Mathur, Hyunseo Chang, Rohan Paleja">
+  <meta name="author" content="Manav Gagvani, Benjamin Namikas, Sivamurugan Velmurugan, Nysa Kumar, Shrey Sharma, Thomas Peterson, Pratyush Mathur, Hyunseo Chang, Rohan Paleja">
   <meta name="robots" content="index, follow">
   <meta name="language" content="English">
   
@@ -25,9 +25,9 @@
   <!-- TODO: Same as description above -->
   <meta property="og:description" content="We apply sparse autoencoders (SAEs) to an E2E planning model, uncovering interpretable features aligned with driving intent and visual landmarks. We show that steering these latents predictably changes planned trajectories, and show that SAE features can be used to improve planning performance (CoRL 2026).">
   <!-- TODO: Replace with your actual website URL -->
-  <meta property="og:url" content="https://YOUR_DOMAIN.com/YOUR_PROJECT_PAGE">
+  <meta property="og:url" content="https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/">
   <!-- TODO: Create a 1200x630px preview image and update path -->
-  <meta property="og:image" content="https://YOUR_DOMAIN.com/static/images/social_preview.png">
+  <meta property="og:image" content="https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/static/images/social_preview.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Mechanistic Interpretability for End-to-End Self-Driving - Research Preview">
@@ -48,7 +48,7 @@
   <!-- TODO: Same as description above -->
   <meta name="twitter:description" content="We apply sparse autoencoders (SAEs) to an E2E planning model, uncovering interpretable features aligned with driving intent and visual landmarks. We show that steering these latents predictably changes planned trajectories, and show that SAE features can be used to improve planning performance (CoRL 2026).">
   <!-- TODO: Same as social preview image above -->
-  <meta name="twitter:image" content="https://YOUR_DOMAIN.com/static/images/social_preview.png">
+  <meta name="twitter:image" content="https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/static/images/social_preview.png">
   <meta name="twitter:image:alt" content="Mechanistic Interpretability for End-to-End Self-Driving - Research Preview">
 
   <!-- Academic/Research Specific -->
@@ -64,7 +64,7 @@
   <meta name="citation_author" content="Paleja, Rohan">
   <meta name="citation_publication_date" content="2026">
   <meta name="citation_conference_title" content="CoRL 2026">
-  <meta name="citation_pdf_url" content="https://YOUR_DOMAIN.com/static/pdfs/paper.pdf">
+  <meta name="citation_pdf_url" content="https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/static/pdfs/paper.pdf">
   
   <!-- Additional SEO -->
   <meta name="theme-color" content="#2563eb">
@@ -219,12 +219,12 @@
   line-height:1.4em;color:var(--mute);padding:8px 10px 0;letter-spacing:normal;
 }
 
-.sae__legend{
+.sae__legend,.tl__legend{
   display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;
   padding-top:10px;font-size:12px;line-height:1.5em;color:var(--mute);
 }
-.sae__key{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-.sae__key span{width:20px;height:3px;display:inline-block;flex:none}
+.sae__key,.tl__key{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.sae__key span,.tl__key span{width:20px;height:3px;display:inline-block;flex:none}
 
 /* ── controls ───────────────────────────────────────────────────────────── */
 .sae__ctl{margin-top:22px;padding-top:18px;border-top:1px solid var(--rule)}
@@ -290,7 +290,6 @@
 .tl__hud b{font-weight:600}
 .tl__bev{border:1px solid var(--rule);background:var(--surface)}
 .tl__bev canvas{display:block;width:100%;height:auto}
-.tl__bevcap{font-size:11px;color:var(--faint);padding:5px 8px;line-height:1.4}
 
 .tl__ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:12px 0 6px}
 .tl__t{font-family:var(--mono);font-size:12.5px;color:var(--mute);
@@ -438,7 +437,7 @@
     "@context": "https://schema.org",
     "@type": "ScholarlyArticle",
     "headline": "Mechanistic Interpretability for End-to-End Self-Driving",
-    "description": "BRIEF_DESCRIPTION_OF_YOUR_RESEARCH_CONTRIBUTION_AND_FINDINGS",
+    "description": "We apply sparse autoencoders (SAEs) to an E2E planning model, uncovering interpretable features aligned with driving intent and visual landmarks. We show that steering these latents predictably changes planned trajectories, and show that SAE features can be used to improve planning performance (CoRL 2026).",
     "author": [
       {
         "@type": "Person",
@@ -482,7 +481,7 @@
       },
       {
         "@type": "Person",
-        "name": "Thomas Joseph Peterson",
+        "name": "Thomas Peterson",
         "affiliation": {
           "@type": "Organization",
           "name": "Machine Learning @ Purdue"
@@ -519,10 +518,10 @@
       "name": "CoRL 2026"
     },
     "url": "https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/",
-    "image": "https://YOUR_DOMAIN.com/static/images/social_preview.png",
+    "image": "https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/static/images/social_preview.png",
     "keywords": ["End-to-end driving", "Mechanistic interpretability"],
-    "abstract": "FULL_ABSTRACT_TEXT_HERE",
-    "citation": "BIBTEX_CITATION_HERE",
+    "abstract": "End-to-end (E2E) autonomous driving models achieve strong planning performance but remain largely opaque, limiting observability and trust. We apply mechanistic interpretability to E2E driving by training Sparse Autoencoders (SAEs) on the internal activations of a simple, single-camera end-to-end path planning model. Unsupervised clustering of SAE latents reveals interpretable structure aligned with route intent, vehicle speed, and braking behavior, recovering route intent with 98.3% accuracy without supervision. Through paired counterfactual image edits, we further show that specific SAE features are visually grounded and systematically respond to scene changes such as traffic light state and stop sign presence. Steering individual SAE latents produces predictable, monotonic changes in planner outputs including lateral displacement, curvature, and braking. Finally, we demonstrate a practical application of these representations: we build a lightweight adapter trained on SAE latents that reduces trajectory selection error by 3.44%, outperforming an equivalent adapter that omits SAE latents, confirming that the sparse representation captures useful information for interpretability.",
+    "citation": "@inproceedings{gagvani2026mechanistic,\n  title = {Mechanistic Interpretability for End-to-End Self-Driving},\n  author = {Gagvani, Manav and Namikas, Benjamin and\n            Velmurugan, Sivamurugan and Kumar, Nysa and\n            Sharma, Shrey and Peterson, Thomas and\n            Mathur, Pratyush and Chang, Hyunseo and\n            Paleja, Rohan},\n  booktitle = {Conference on Robot Learning},\n  year = {2026},\n  url = {https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/}\n}",
     "isAccessibleForFree": true,
     "license": "https://creativecommons.org/licenses/by/4.0/",
     "mainEntity": {
@@ -548,8 +547,8 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Machine Learning @ Purdue",
-    "url": "https://YOUR_INSTITUTION_WEBSITE.com",
-    "logo": "https://YOUR_DOMAIN.com/static/images/favicon.ico",
+    "url": "https://scaleroboticslab.com/",
+    "logo": "https://mgagvani.github.io/mechanistic-interpretability-for-e2e-driving/static/images/favicon.ico",
     "sameAs": [
       "https://twitter.com/manav_gagvani",
       "https://github.com/mgagvani"
@@ -615,7 +614,7 @@
               <span class="author-block"><a href="https://www.linkedin.com/in/sivamurugan-velmurugan-a3a040325/" target="_blank">Sivamurugan Velmurugan</a><sup>2</sup>,</span>
               <span class="author-block"><a href="https://www.linkedin.com/in/nysa-kumar-021211255" target="_blank">Nysa Kumar</a><sup>2</sup>,</span>
               <span class="author-block"><a href="https://www.linkedin.com/in/shreyshrma1" target="_blank">Shrey Sharma</a><sup>2</sup>,</span>
-              <span class="author-block"><a href="https://www.linkedin.com/in/thomas-j-peterson/" target="_blank">Thomas Joseph Peterson</a><sup>2</sup>,</span>
+              <span class="author-block"><a href="https://www.linkedin.com/in/thomas-j-peterson/" target="_blank">Thomas Peterson</a><sup>2</sup>,</span>
               <span class="author-block"><a href="https://www.linkedin.com/in/pratyushmathr" target="_blank">Pratyush Mathur</a><sup>2</sup>,</span>
               <span class="author-block"><a href="https://www.linkedin.com/in/hyunseo-hayden-chang/" target="_blank">Hyunseo Chang</a><sup>2</sup>,</span>
               <span class="author-block"><a href="https://www.rohanpaleja.com/" target="_blank">Rohan Paleja</a><sup>2</sup></span>
@@ -991,12 +990,11 @@
             <span id="tl-hud-t"></span>
             <span id="tl-hud-v"></span>
             <span id="tl-hud-f"></span>
-            <span id="tl-hud-ade"></span>
           </div>
         </div>
         <div>
           <div class="tl__bev"><canvas id="tl-bev" width="420" height="420"></canvas></div>
-          <div class="tl__bevcap" id="tl-bevcap"></div>
+          <div class="tl__legend"><span class="tl__key"><span style="background:#2f6c9f"></span>Model prediction</span></div>
         </div>
       </div>
 
@@ -1005,7 +1003,6 @@
         <button type="button" class="tl__step" id="tl-prev">&minus;1</button>
         <button type="button" class="tl__step" id="tl-next">+1</button>
         <span class="tl__t" id="tl-time"></span>
-        <button type="button" class="tl__step" id="tl-gt" aria-pressed="false">Show ground truth</button>
         <span class="tl__spacer"></span>
         <span class="tl__rate">4&nbsp;Hz, 0.25&nbsp;s per frame</span>
       </div>
@@ -1019,33 +1016,6 @@
       </div>
       <div class="tl__tip" id="tl-tip" hidden></div>
 
-      <figcaption>
-        The strip is every frame of the clip; the rows beneath are the latent's activation on
-        that frame, dark for zero and solid at the latent's maximum <b>over the whole
-        validation split</b> — so a faint row here means faint everywhere, and rows can be
-        compared between clips. Activations are measured at 4&nbsp;Hz, the same rate as the
-        frames; nothing is interpolated.
-        <br><br>
-        <b>Brake</b> and <b>Accelerate</b> are not the latents the steering figure names. Those
-        were identified by what driving them does. These two were chosen by what they respond
-        to: the planner's 5&nbsp;s path implies a mean speed, and the ratio of that to the
-        speed the car is actually doing says whether it intends to gain or lose speed,
-        independent of how fast it is going. Latent&nbsp;12 fires when that ratio is 0.28 and
-        the car is decelerating at 1.5&nbsp;m/s²; latent&nbsp;195 when it is 2.31 and the car
-        is gaining 0.9&nbsp;m/s².
-        <br><br>
-        The path drawn on the camera and from above is the plan the model would execute at
-        that instant, the lowest predicted ADE of its 50 proposals. It is a prediction, not
-        the route the car took, and <b>Show ground truth</b> puts the recorded route beside it.
-        Expect a gap. These four clips were chosen for having turns and queued traffic in
-        them, which are the hard cases: their median ADE runs 1.45 to 3.06&nbsp;m against
-        1.07&nbsp;m across the validation split, and the error grows along the path, so the
-        far end of the red line can sit several metres off the blue. That is the model, not a
-        drawing error.
-        <br><br>
-        The camera spans 46°, so during a sharp turn or a stop the plan leaves the image
-        entirely and only the top-down panel shows it.
-      </figcaption>
       </figure>
 
     </div></div>
@@ -1058,8 +1028,8 @@
   // Where timeline.json and the sprites live, relative to the page. Empty when the page
   // owns its own directory; the project page passes static/sae/ on the script tag.
   var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
-  var D = null, W = null, i = 0, playing = false, timer = null, drag = false, showGT = false;
-  var PLAN = '#2f6c9f', TRUTH = '#b94a48';
+  var D = null, W = null, i = 0, playing = false, timer = null, drag = false;
+  var PLAN = '#2f6c9f';
   // All in CSS pixels. The canvas used to carry a fixed 1800-pixel backing store with
   // text sized for it, which meant everything shrank with the element: at a 390 px
   // viewport a 20 px row label rendered at 4.3 px. The backing store is now sized from
@@ -1129,15 +1099,6 @@
     }
   }
 
-  function drawTruthCam(g, pts) {
-    // the figure's own idiom for a reference path: a soft white casing under a dashed
-    // line, so it never competes with the plan it is being compared against
-    var k = SC(), rs = runs(pts);
-    if (!rs.length) return;
-    trace(g, rs, 'rgba(255,255,255,.45)', 9 * k);
-    trace(g, rs, TRUTH, 3.6 * k, [3 * k * 3, 9 * k * 1.1]);
-  }
-
   function drawOverlay() {
     var cv = document.getElementById('tl-over');
     var box = cv.parentElement.getBoundingClientRect();
@@ -1149,7 +1110,6 @@
     // the camera model is in tile pixels; scale it to however large the element is
     var sc = (box.width / W.tile[0]) * dpr;
     g.save(); g.scale(sc, sc);
-    if (showGT) drawTruthCam(g, W.truth[i]);
     drawPlanCam(g, W.plans[i]);
     g.restore();
   }
@@ -1167,7 +1127,6 @@
     $('tl-hud-t').textContent = (i * W.dt).toFixed(2) + ' s';
     $('tl-hud-v').textContent = W.speed[i].toFixed(1) + ' m/s';
     $('tl-hud-f').textContent = 'frame ' + (W.f0 + i);
-    $('tl-hud-ade').textContent = 'ADE ' + W.ade[i].toFixed(2) + ' m';
     $('tl-time').textContent = (i * W.dt).toFixed(2) + ' / ' + ((W.n - 1) * W.dt).toFixed(2) + ' s';
     $('tl-track').setAttribute('aria-valuenow', i);
     $('tl-headline').style.left =
@@ -1229,7 +1188,6 @@
         }
       }
     }
-    if (showGT) path(W.truth[i], TRUTH, 1.8 * kb, [3 * kb, 5 * kb], false);
     path(p, PLAN, 2.6 * kb, null, true);
     g.fillStyle = css.getPropertyValue('--head') || '#16191e';
     g.beginPath();
@@ -1302,7 +1260,7 @@
       if (!A.v.some(function (x) { return x > 0; })) {
         g.fillStyle = faint;
         g.font = 'italic 11px ' + (css.getPropertyValue('--sans') || 'sans-serif');
-        g.fillText('silent throughout this clip', x0 + 10, y + ROWH / 2);
+        g.fillText('no activations in this clip', x0 + 10, y + ROWH / 2);
       }
       g.fillStyle = ink;
       g.font = '600 13px ' + (css.getPropertyValue('--sans') || 'sans-serif');
@@ -1370,31 +1328,6 @@
     }
   }
 
-  function bevCap() {
-    var c = document.getElementById('tl-bevcap');
-    c.textContent = '';
-    var a = document.createElement('span');
-    a.style.color = PLAN; a.textContent = 'Blue';
-    c.appendChild(a);
-    c.appendChild(document.createTextNode(' is the plan the model would execute at this '
-      + 'instant, 5 s ahead. '));
-    if (showGT) {
-      var b2 = document.createElement('span');
-      b2.style.color = TRUTH; b2.textContent = 'Red';
-      c.appendChild(b2);
-      c.appendChild(document.createTextNode(' is where the car actually went.'));
-    } else {
-      c.appendChild(document.createTextNode('It is a prediction, not the route driven.'));
-    }
-  }
-
-  document.getElementById('tl-gt').addEventListener('click', function () {
-    showGT = !showGT;
-    this.setAttribute('aria-pressed', showGT ? 'true' : 'false');
-    this.textContent = showGT ? 'Hide ground truth' : 'Show ground truth';
-    bevCap(); drawOverlay(); drawBev();
-  });
-
   function load(k) {
     W = D[k];
     Array.prototype.forEach.call($('tl-tabs').children, function (b, j) {
@@ -1403,7 +1336,6 @@
     $('tl-blurb').textContent = W.blurb;
     $('tl-track').setAttribute('aria-valuemax', W.n - 1);
     play(false);
-    bevCap();
     drawTrack();
     showFrame(0);
   }
@@ -2114,7 +2046,7 @@ End youtube video -->
   author = {Gagvani, Manav and Namikas, Benjamin and
             Velmurugan, Sivamurugan and Kumar, Nysa and
             Sharma, Shrey and Peterson, Thomas and
-            Mathur, Pratyush and Chang, Hyunseo Hayden and
+            Mathur, Pratyush and Chang, Hyunseo and
             Paleja, Rohan},
   booktitle = {Conference on Robot Learning},
   year = {2026},
