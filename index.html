@@ -276,6 +276,7 @@
 .tl__tabs{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px}
 .tl button:focus-visible,.tl__track:focus-visible{outline:2px solid var(--plan);outline-offset:2px}
 
+.tl__blurb:empty{display:none}
 .tl__blurb{font-size:12px;line-height:1.5em;color:var(--mute);margin:0 0 14px;max-width:72ch}
 
 .tl__stage{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:12px;align-items:start}
@@ -691,6 +692,8 @@
     <div class="sae">
     <div class="sae__grid">
 
+      <h2>Latent Steering</h2>
+
       <figure class="sae__fig sae__breakout">
         <div class="sae__views">
           <div>
@@ -973,11 +976,7 @@
   <div class="hero-body" style="padding:0">
     <div class="tl"><div class="tl__grid">
 
-      <h2>When does a latent fire?</h2>
-      <p>The gallery asks what a latent responds to. This asks when. Scrub the clip and watch
-         the rows underneath: the two route-intent latents light up across the turns, and
-         everything below them is longitudinal.</p>
-
+      <h2>SAE Feature Activation Over Time</h2>
       <figure class="tl__fig tl__breakout">
       <div class="tl__tabs" id="tl-tabs"></div>
       <p class="tl__blurb" id="tl-blurb"></p>
@@ -1333,7 +1332,6 @@
     Array.prototype.forEach.call($('tl-tabs').children, function (b, j) {
       b.setAttribute('aria-pressed', j === k ? 'true' : 'false');
     });
-    $('tl-blurb').textContent = W.blurb;
     $('tl-track').setAttribute('aria-valuemax', W.n - 1);
     play(false);
     drawTrack();
@@ -1376,13 +1374,309 @@
 </script>
 <!-- End activation timeline -->
 
-<!-- Interactive alignment figure -->
+<!-- Counterfactual scene viewer -->
 <section class="hero is-small">
+  <div class="hero-body" style="padding:0">
+    <div class="cf"><div class="cf__grid">
+      <h2>Counterfactual Visual Edits</h2>
+      <figure class="cf__fig cf__breakout">
+        <div class="cf__chips" id="cf-dirs"></div>
+
+        <div class="cf__panes">
+          <div class="cf__pane">
+            <h3>Scene</h3>
+            <div class="cf__scene">
+              <img id="cf-img" alt="Forward camera frame, original or counterfactually edited">
+              <canvas id="cf-diff"></canvas>
+              <div class="cf__badge" id="cf-badge">Original</div>
+            </div>
+            <div class="cf__scenebar">
+              <button type="button" class="cf__btn" id="cf-toggle">Show edited</button>
+              <button type="button" class="cf__btn" id="cf-diffbtn" aria-pressed="false">Highlight change</button>
+            </div>
+            <div class="cf__prompt" id="cf-prompt"></div>
+          </div>
+
+          <div class="cf__pane">
+            <h3>Change in SAE feature activations</h3>
+            <svg id="cf-bars" viewBox="0 0 320 250" aria-label="Largest latent activation changes"></svg>
+          </div>
+
+          <div class="cf__pane">
+            <h3>Planner output</h3>
+            <div class="cf__plan"><svg id="cf-plan" viewBox="0 0 250 300" aria-label="Planned trajectory before and after the edit"></svg></div>
+            <div class="cf__keys">
+              <span class="cf__key"><i style="background:#2f6c9f"></i>original</span>
+              <span class="cf__key"><i style="background:#b94a48"></i>edited</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cf__nav">
+          <button type="button" class="cf__btn" id="cf-prev">Previous</button>
+          <button type="button" class="cf__btn" id="cf-next">Next</button>
+          <span class="cf__count" id="cf-count"></span>
+        </div>
+
+        <figcaption id="cf-cap"></figcaption>
+      </figure>
+    </div></div>
+  </div>
+</section>
+
+<script data-assets="static/sae/">
+(function () {
+  "use strict";
+  var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
+  var NS = 'http://www.w3.org/2000/svg';
+  var D = null, cur = 0, dir = null, showEdited = false, showDiff = false;
+  var list = [];
+
+  function el(t, a) {
+    var e = document.createElementNS(NS, t);
+    for (var k in a) if (a[k] !== null && a[k] !== undefined) e.setAttribute(k, a[k]);
+    return e;
+  }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function ex() { return list[cur]; }
+
+  // ── scene ───────────────────────────────────────────────────────────────
+  var imgEl = document.getElementById('cf-img');
+  var cv = document.getElementById('cf-diff');
+
+  function srcFor(e, edited) {
+    return ASSETS + 'cf/' + e.stem + (edited ? '_e' : '_o') + '.jpg';
+  }
+  function paintScene() {
+    var e = ex();
+    imgEl.src = srcFor(e, showEdited);
+    imgEl.width = e.img_w; imgEl.height = e.img_h;
+    document.getElementById('cf-badge').textContent = showEdited ? 'Edited' : 'Original';
+    document.getElementById('cf-toggle').textContent =
+      showEdited ? 'Show original' : 'Show edited';
+    var pr = document.getElementById('cf-prompt');
+    pr.textContent = '';
+    if (e.prompt) {
+      var pl = document.createElement('b');
+      pl.textContent = 'Prompt: ';
+      pr.appendChild(pl);
+      pr.appendChild(document.createTextNode(e.prompt));
+    }
+    if (showDiff) renderDiff(e);
+    else { diffToken++; cv.classList.remove('on'); }
+  }
+
+  // the change mask is computed in the browser from the two images, so nothing
+  // about "what changed" is asserted by hand
+  //
+  // Each render carries a token. Both images load asynchronously, and the viewer can
+  // move to another example or switch the highlight off while they are still in
+  // flight; without the token that stale callback would paint its own mask over
+  // whatever scene is now showing, and re-enable the overlay after it was turned off.
+  var diffToken = 0;
+  function renderDiff(e) {
+    var token = ++diffToken;
+    var a = new Image(), b = new Image(), done = 0;
+    a.crossOrigin = b.crossOrigin = 'anonymous';
+    function go() {
+      if (++done < 2) return;
+      if (token !== diffToken || !showDiff || ex() !== e) return;
+      var w = e.img_w, h = e.img_h;
+      cv.width = w; cv.height = h;
+      var c = cv.getContext('2d');
+      c.drawImage(a, 0, 0, w, h); var A = c.getImageData(0, 0, w, h);
+      c.clearRect(0, 0, w, h);
+      c.drawImage(b, 0, 0, w, h); var B = c.getImageData(0, 0, w, h);
+      var out = c.createImageData(w, h), pa = A.data, pb = B.data, po = out.data;
+      for (var i = 0; i < pa.length; i += 4) {
+        var d = (Math.abs(pa[i] - pb[i]) + Math.abs(pa[i+1] - pb[i+1])
+                 + Math.abs(pa[i+2] - pb[i+2])) / 3;
+        var on = d > 26;                       // above JPEG re-encoding noise
+        po[i] = 185; po[i+1] = 74; po[i+2] = 72;
+        po[i+3] = on ? Math.min(190, 70 + d * 1.6) : 0;
+      }
+      c.putImageData(out, 0, 0);
+      cv.classList.add('on');
+    }
+    a.onload = b.onload = go;
+    a.src = srcFor(e, false); b.src = srcFor(e, true);
+  }
+
+  // ── internal representation ─────────────────────────────────────────────
+  function paintBars() {
+    var svg = document.getElementById('cf-bars'); clear(svg);
+    var e = ex(), f = e.feats, W = 320, rowH = 22, padL = 56, padR = 14, top = 16;
+    var maxAbs = 0;
+    f.forEach(function (x) { maxAbs = Math.max(maxAbs, Math.abs(x.d)); });
+    maxAbs = Math.max(maxAbs, 1e-6);
+    var midX = padL + (W - padL - padR) / 2;
+    var half = (W - padL - padR) / 2;
+
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (top + f.length * rowH + 22));
+    svg.appendChild(el('line', { x1: midX, x2: midX, y1: top - 6,
+      y2: top + f.length * rowH, stroke: '#9EA5B1', 'stroke-width': 1 }));
+
+    f.forEach(function (x, i) {
+      var y = top + i * rowH, w = Math.abs(x.d) / maxAbs * half * 0.94;
+      var pos = x.d >= 0;
+      svg.appendChild(el('rect', { x: pos ? midX : midX - w, y: y + 4,
+        width: Math.max(w, 0.6), height: rowH - 10,
+        fill: pos ? '#2f6c9f' : '#c45a2a', 'fill-opacity': .85 }));
+      var lab = el('text', { x: padL - 8, y: y + rowH / 2 + 3, 'text-anchor': 'end',
+        'font-family': 'Consolas,monospace', 'font-size': 11, fill: 'rgba(0,0,0,.6)' });
+      lab.textContent = x.f;
+      svg.appendChild(lab);
+      // the value goes inside the bar when it fits, otherwise just past the end
+      var inside = w >= 52;
+      var val = el('text', { y: y + rowH / 2 + 3,
+        x: inside ? (pos ? midX + w - 5 : midX - w + 5) : (pos ? midX + w + 5 : midX - w - 5),
+        'text-anchor': (pos === inside) ? 'end' : 'start', 'font-family': 'Consolas,monospace',
+        'font-size': 10.5, fill: inside ? '#fff' : 'rgba(0,0,0,.45)' });
+      val.textContent = (x.d >= 0 ? '+' : '−') + Math.abs(x.d).toFixed(2);
+      svg.appendChild(val);
+    });
+    var cap = el('text', { x: midX, y: top + f.length * rowH + 15, 'text-anchor': 'middle',
+      'font-family': 'Consolas,monospace', 'font-size': 10.5, fill: 'rgba(0,0,0,.4)' });
+    cap.textContent = 'Δz, scale units';
+    svg.appendChild(cap);
+  }
+
+  // ── planner output ──────────────────────────────────────────────────────
+  var PW = 250, PH = 300, PT = 16, PB = 16;
+
+  // The window is fitted per example, not fixed. These plans differ enormously in
+  // extent - one reaches 67 m ahead, another swings 21 m laterally, while several
+  // barely move at all - so a single window either clips the long ones or shrinks
+  // the short ones to a dot. A fixed 55 m by +/-12 m frame cut the tails off 5 of
+  // the 12 examples, hiding exactly the divergence this panel exists to show.
+  function planBounds(e) {
+    var all = e.traj_o.concat(e.traj_e), fwd = 0, lat = 0, i;
+    for (i = 0; i < all.length; i++) {
+      if (all[i][0] > fwd) fwd = all[i][0];
+      if (Math.abs(all[i][1]) > lat) lat = Math.abs(all[i][1]);
+    }
+    // headroom so the last waypoint is not drawn on the frame edge, and a floor so
+    // a near-stationary plan is not magnified until resample noise looks like a turn
+    return { fwd: Math.max(fwd * 1.14, 10), lat: Math.max(lat * 1.18, 3) };
+  }
+  function gridStep(span) {
+    return span <= 14 ? 2 : span <= 30 ? 5 : span <= 70 ? 10 : 20;
+  }
+
+  function paintPlan() {
+    var svg = document.getElementById('cf-plan'); clear(svg);
+    var e = ex(), B = planBounds(e);
+    var FWD = B.fwd, LAT = B.lat;
+    function px(y) { return PW / 2 - (y / LAT) * (PW / 2 - 10); }
+    function py(x) { return PH - PB - (x / FWD) * (PH - PT - PB); }
+
+    var step = gridStep(FWD);
+    for (var m = step; m <= FWD; m += step) {
+      svg.appendChild(el('line', { x1: 8, x2: PW - 8, y1: py(m), y2: py(m),
+        stroke: '#D8DCE2', 'stroke-width': 1 }));
+      var t = el('text', { x: 11, y: py(m) - 3, 'font-family': 'Consolas,monospace',
+        'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
+      t.textContent = m + ' m'; svg.appendChild(t);
+    }
+    // lateral reference lines, so a wide swing reads as distance rather than as a
+    // rescaled version of a narrow one
+    var ls = gridStep(LAT * 2);
+    for (var k = ls; k <= LAT; k += ls) {
+      [-k, k].forEach(function (v) {
+        svg.appendChild(el('line', { x1: px(v), x2: px(v), y1: PT, y2: PH - PB,
+          stroke: '#E9ECF0', 'stroke-width': 1 }));
+      });
+    }
+    svg.appendChild(el('line', { x1: px(0), x2: px(0), y1: PT, y2: PH - PB,
+      stroke: '#c3c9d2', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
+
+    // lateral axis labels along the bottom edge
+    function xlab(v, txt) {
+      var t = el('text', { x: px(v), y: PH - 3, 'text-anchor': 'middle',
+        'font-family': 'Consolas,monospace', 'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
+      t.textContent = txt; svg.appendChild(t);
+    }
+    xlab(0, '0');
+    for (var q = ls; q <= LAT; q += ls) { xlab(-q, q + ' m'); xlab(q, q + ' m'); }
+
+    function path(tr) {
+      return tr.map(function (p, i) {
+        return (i ? 'L' : 'M') + px(p[1]).toFixed(1) + ' ' + py(p[0]).toFixed(1);
+      }).join(' ');
+    }
+    svg.appendChild(el('path', { d: path(e.traj_o), fill: 'none', stroke: '#2f6c9f',
+      'stroke-width': showEdited ? 1.6 : 2.6, 'stroke-opacity': showEdited ? .5 : 1,
+      'stroke-linecap': 'round' }));
+    svg.appendChild(el('path', { d: path(e.traj_e), fill: 'none', stroke: '#b94a48',
+      'stroke-width': showEdited ? 2.6 : 1.6, 'stroke-opacity': showEdited ? 1 : .5,
+      'stroke-linecap': 'round' }));
+    svg.appendChild(el('path', { d: 'M' + (PW/2 - 4) + ' ' + (PH - PB) + 'L' + (PW/2) + ' '
+      + (PH - PB - 7) + 'L' + (PW/2 + 4) + ' ' + (PH - PB) + 'Z', fill: '#16191e' }));
+  }
+
+
+  function paintAll() {
+    paintScene(); paintBars(); paintPlan();
+    document.getElementById('cf-count').textContent =
+      (cur + 1) + ' of ' + list.length;
+    document.getElementById('cf-prev').disabled = cur === 0;
+    document.getElementById('cf-next').disabled = cur === list.length - 1;
+  }
+
+  function setDir(k) {
+    dir = k; list = D.examples.filter(function (e) { return e.dir === k; });
+    cur = 0; showEdited = false; showDiff = false;
+    document.getElementById('cf-diffbtn').setAttribute('aria-pressed', 'false');
+    Array.prototype.forEach.call(document.getElementById('cf-dirs').children,
+      function (b) { b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'); });
+    paintAll();
+  }
+
+  function boot(data) {
+    D = data;
+    var host = document.getElementById('cf-dirs');
+    D.directions.forEach(function (d) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cf__chip'; b.dataset.k = d.key;
+      b.textContent = d.label;
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () { setDir(d.key); });
+      host.appendChild(b);
+    });
+    document.getElementById('cf-toggle').addEventListener('click', function () {
+      showEdited = !showEdited; paintScene(); paintPlan();
+    });
+    document.getElementById('cf-diffbtn').addEventListener('click', function () {
+      showDiff = !showDiff;
+      this.setAttribute('aria-pressed', showDiff ? 'true' : 'false');
+      paintScene();
+    });
+    document.getElementById('cf-prev').addEventListener('click', function () {
+      if (cur > 0) { cur--; showEdited = false; paintAll(); } });
+    document.getElementById('cf-next').addEventListener('click', function () {
+      if (cur < list.length - 1) { cur++; showEdited = false; paintAll(); } });
+
+    setDir(D.directions[0].key);
+  }
+
+  if (window.__CF_DATA__) boot(window.__CF_DATA__);
+  else fetch(ASSETS + 'counterfactual.json').then(function (r) { return r.json(); })
+    .then(boot).catch(function (e) {
+      document.getElementById('cf-cap').textContent =
+        'Could not load counterfactual.json (' + e.message + '). Serve this directory '
+        + 'over HTTP, or open standalone_counterfactual.html.';
+    });
+})();
+</script>
+<!-- End counterfactual scene viewer -->
+
+<!-- Interactive alignment figure -->
+<section class="hero is-small is-light">
   <div class="hero-body" style="padding:0">
     <div class="eal">
     <div class="eal__grid">
 
-      <h2>Do edit-sensitive features steer the way the edit implies?</h2>
+      <h2>SAE Features Have Aligned Steering Effects</h2>
 
       <figure class="eal__fig eal__breakout">
         <div class="eal__ctl">
@@ -1711,307 +2005,6 @@
 })();
 </script>
 <!-- End interactive alignment figure -->
-
-<!-- Counterfactual scene viewer -->
-<section class="hero is-small is-light">
-  <div class="hero-body" style="padding:0">
-    <div class="cf"><div class="cf__grid">
-      <h2>Does the feature respond to what the model sees?</h2>
-      <p>The sliders show that driving a latent changes the plan. This asks the other
-         direction: edit the <em>image</em>, and see whether the latents move and the plan
-         follows. Each example is a real paired edit — the same frame, minimally altered —
-         pushed through the same planner.</p>
-
-      <figure class="cf__fig cf__breakout">
-        <div class="cf__chips" id="cf-dirs"></div>
-
-        <div class="cf__panes">
-          <div class="cf__pane">
-            <h3>Scene</h3>
-            <div class="cf__scene">
-              <img id="cf-img" alt="Forward camera frame, original or counterfactually edited">
-              <canvas id="cf-diff"></canvas>
-              <div class="cf__badge" id="cf-badge">Original</div>
-            </div>
-            <div class="cf__scenebar">
-              <button type="button" class="cf__btn" id="cf-toggle">Show edited</button>
-              <button type="button" class="cf__btn" id="cf-diffbtn" aria-pressed="false">Highlight change</button>
-            </div>
-            <div class="cf__prompt" id="cf-prompt"></div>
-          </div>
-
-          <div class="cf__pane">
-            <h3>Change in SAE feature activations</h3>
-            <svg id="cf-bars" viewBox="0 0 320 250" aria-label="Largest latent activation changes"></svg>
-          </div>
-
-          <div class="cf__pane">
-            <h3>Planner output</h3>
-            <div class="cf__plan"><svg id="cf-plan" viewBox="0 0 250 300" aria-label="Planned trajectory before and after the edit"></svg></div>
-            <div class="cf__keys">
-              <span class="cf__key"><i style="background:#2f6c9f"></i>original</span>
-              <span class="cf__key"><i style="background:#b94a48"></i>edited</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="cf__nav">
-          <button type="button" class="cf__btn" id="cf-prev">Previous</button>
-          <button type="button" class="cf__btn" id="cf-next">Next</button>
-          <span class="cf__count" id="cf-count"></span>
-        </div>
-
-        <figcaption id="cf-cap"></figcaption>
-      </figure>
-    </div></div>
-  </div>
-</section>
-
-<script data-assets="static/sae/">
-(function () {
-  "use strict";
-  var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
-  var NS = 'http://www.w3.org/2000/svg';
-  var D = null, cur = 0, dir = null, showEdited = false, showDiff = false;
-  var list = [];
-
-  function el(t, a) {
-    var e = document.createElementNS(NS, t);
-    for (var k in a) if (a[k] !== null && a[k] !== undefined) e.setAttribute(k, a[k]);
-    return e;
-  }
-  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
-  function ex() { return list[cur]; }
-
-  // ── scene ───────────────────────────────────────────────────────────────
-  var imgEl = document.getElementById('cf-img');
-  var cv = document.getElementById('cf-diff');
-
-  function srcFor(e, edited) {
-    return ASSETS + 'cf/' + e.stem + (edited ? '_e' : '_o') + '.jpg';
-  }
-  function paintScene() {
-    var e = ex();
-    imgEl.src = srcFor(e, showEdited);
-    imgEl.width = e.img_w; imgEl.height = e.img_h;
-    document.getElementById('cf-badge').textContent = showEdited ? 'Edited' : 'Original';
-    document.getElementById('cf-toggle').textContent =
-      showEdited ? 'Show original' : 'Show edited';
-    var pr = document.getElementById('cf-prompt');
-    pr.textContent = '';
-    if (e.prompt) {
-      var pl = document.createElement('b');
-      pl.textContent = 'Prompt: ';
-      pr.appendChild(pl);
-      pr.appendChild(document.createTextNode(e.prompt));
-    }
-    if (showDiff) renderDiff(e);
-    else { diffToken++; cv.classList.remove('on'); }
-  }
-
-  // the change mask is computed in the browser from the two images, so nothing
-  // about "what changed" is asserted by hand
-  //
-  // Each render carries a token. Both images load asynchronously, and the viewer can
-  // move to another example or switch the highlight off while they are still in
-  // flight; without the token that stale callback would paint its own mask over
-  // whatever scene is now showing, and re-enable the overlay after it was turned off.
-  var diffToken = 0;
-  function renderDiff(e) {
-    var token = ++diffToken;
-    var a = new Image(), b = new Image(), done = 0;
-    a.crossOrigin = b.crossOrigin = 'anonymous';
-    function go() {
-      if (++done < 2) return;
-      if (token !== diffToken || !showDiff || ex() !== e) return;
-      var w = e.img_w, h = e.img_h;
-      cv.width = w; cv.height = h;
-      var c = cv.getContext('2d');
-      c.drawImage(a, 0, 0, w, h); var A = c.getImageData(0, 0, w, h);
-      c.clearRect(0, 0, w, h);
-      c.drawImage(b, 0, 0, w, h); var B = c.getImageData(0, 0, w, h);
-      var out = c.createImageData(w, h), pa = A.data, pb = B.data, po = out.data;
-      for (var i = 0; i < pa.length; i += 4) {
-        var d = (Math.abs(pa[i] - pb[i]) + Math.abs(pa[i+1] - pb[i+1])
-                 + Math.abs(pa[i+2] - pb[i+2])) / 3;
-        var on = d > 26;                       // above JPEG re-encoding noise
-        po[i] = 185; po[i+1] = 74; po[i+2] = 72;
-        po[i+3] = on ? Math.min(190, 70 + d * 1.6) : 0;
-      }
-      c.putImageData(out, 0, 0);
-      cv.classList.add('on');
-    }
-    a.onload = b.onload = go;
-    a.src = srcFor(e, false); b.src = srcFor(e, true);
-  }
-
-  // ── internal representation ─────────────────────────────────────────────
-  function paintBars() {
-    var svg = document.getElementById('cf-bars'); clear(svg);
-    var e = ex(), f = e.feats, W = 320, rowH = 22, padL = 56, padR = 14, top = 16;
-    var maxAbs = 0;
-    f.forEach(function (x) { maxAbs = Math.max(maxAbs, Math.abs(x.d)); });
-    maxAbs = Math.max(maxAbs, 1e-6);
-    var midX = padL + (W - padL - padR) / 2;
-    var half = (W - padL - padR) / 2;
-
-    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (top + f.length * rowH + 22));
-    svg.appendChild(el('line', { x1: midX, x2: midX, y1: top - 6,
-      y2: top + f.length * rowH, stroke: '#9EA5B1', 'stroke-width': 1 }));
-
-    f.forEach(function (x, i) {
-      var y = top + i * rowH, w = Math.abs(x.d) / maxAbs * half * 0.94;
-      var pos = x.d >= 0;
-      svg.appendChild(el('rect', { x: pos ? midX : midX - w, y: y + 4,
-        width: Math.max(w, 0.6), height: rowH - 10,
-        fill: pos ? '#2f6c9f' : '#c45a2a', 'fill-opacity': .85 }));
-      var lab = el('text', { x: padL - 8, y: y + rowH / 2 + 3, 'text-anchor': 'end',
-        'font-family': 'Consolas,monospace', 'font-size': 11, fill: 'rgba(0,0,0,.6)' });
-      lab.textContent = x.f;
-      svg.appendChild(lab);
-      // the value goes inside the bar when it fits, otherwise just past the end
-      var inside = w >= 52;
-      var val = el('text', { y: y + rowH / 2 + 3,
-        x: inside ? (pos ? midX + w - 5 : midX - w + 5) : (pos ? midX + w + 5 : midX - w - 5),
-        'text-anchor': (pos === inside) ? 'end' : 'start', 'font-family': 'Consolas,monospace',
-        'font-size': 10.5, fill: inside ? '#fff' : 'rgba(0,0,0,.45)' });
-      val.textContent = (x.d >= 0 ? '+' : '−') + Math.abs(x.d).toFixed(2);
-      svg.appendChild(val);
-    });
-    var cap = el('text', { x: midX, y: top + f.length * rowH + 15, 'text-anchor': 'middle',
-      'font-family': 'Consolas,monospace', 'font-size': 10.5, fill: 'rgba(0,0,0,.4)' });
-    cap.textContent = 'Δz, scale units';
-    svg.appendChild(cap);
-  }
-
-  // ── planner output ──────────────────────────────────────────────────────
-  var PW = 250, PH = 300, PT = 16, PB = 16;
-
-  // The window is fitted per example, not fixed. These plans differ enormously in
-  // extent - one reaches 67 m ahead, another swings 21 m laterally, while several
-  // barely move at all - so a single window either clips the long ones or shrinks
-  // the short ones to a dot. A fixed 55 m by +/-12 m frame cut the tails off 5 of
-  // the 12 examples, hiding exactly the divergence this panel exists to show.
-  function planBounds(e) {
-    var all = e.traj_o.concat(e.traj_e), fwd = 0, lat = 0, i;
-    for (i = 0; i < all.length; i++) {
-      if (all[i][0] > fwd) fwd = all[i][0];
-      if (Math.abs(all[i][1]) > lat) lat = Math.abs(all[i][1]);
-    }
-    // headroom so the last waypoint is not drawn on the frame edge, and a floor so
-    // a near-stationary plan is not magnified until resample noise looks like a turn
-    return { fwd: Math.max(fwd * 1.14, 10), lat: Math.max(lat * 1.18, 3) };
-  }
-  function gridStep(span) {
-    return span <= 14 ? 2 : span <= 30 ? 5 : span <= 70 ? 10 : 20;
-  }
-
-  function paintPlan() {
-    var svg = document.getElementById('cf-plan'); clear(svg);
-    var e = ex(), B = planBounds(e);
-    var FWD = B.fwd, LAT = B.lat;
-    function px(y) { return PW / 2 - (y / LAT) * (PW / 2 - 10); }
-    function py(x) { return PH - PB - (x / FWD) * (PH - PT - PB); }
-
-    var step = gridStep(FWD);
-    for (var m = step; m <= FWD; m += step) {
-      svg.appendChild(el('line', { x1: 8, x2: PW - 8, y1: py(m), y2: py(m),
-        stroke: '#D8DCE2', 'stroke-width': 1 }));
-      var t = el('text', { x: 11, y: py(m) - 3, 'font-family': 'Consolas,monospace',
-        'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
-      t.textContent = m + ' m'; svg.appendChild(t);
-    }
-    // lateral reference lines, so a wide swing reads as distance rather than as a
-    // rescaled version of a narrow one
-    var ls = gridStep(LAT * 2);
-    for (var k = ls; k <= LAT; k += ls) {
-      [-k, k].forEach(function (v) {
-        svg.appendChild(el('line', { x1: px(v), x2: px(v), y1: PT, y2: PH - PB,
-          stroke: '#E9ECF0', 'stroke-width': 1 }));
-      });
-    }
-    svg.appendChild(el('line', { x1: px(0), x2: px(0), y1: PT, y2: PH - PB,
-      stroke: '#c3c9d2', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
-
-    // lateral axis labels along the bottom edge
-    function xlab(v, txt) {
-      var t = el('text', { x: px(v), y: PH - 3, 'text-anchor': 'middle',
-        'font-family': 'Consolas,monospace', 'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
-      t.textContent = txt; svg.appendChild(t);
-    }
-    xlab(0, '0');
-    for (var q = ls; q <= LAT; q += ls) { xlab(-q, q + ' m'); xlab(q, q + ' m'); }
-
-    function path(tr) {
-      return tr.map(function (p, i) {
-        return (i ? 'L' : 'M') + px(p[1]).toFixed(1) + ' ' + py(p[0]).toFixed(1);
-      }).join(' ');
-    }
-    svg.appendChild(el('path', { d: path(e.traj_o), fill: 'none', stroke: '#2f6c9f',
-      'stroke-width': showEdited ? 1.6 : 2.6, 'stroke-opacity': showEdited ? .5 : 1,
-      'stroke-linecap': 'round' }));
-    svg.appendChild(el('path', { d: path(e.traj_e), fill: 'none', stroke: '#b94a48',
-      'stroke-width': showEdited ? 2.6 : 1.6, 'stroke-opacity': showEdited ? 1 : .5,
-      'stroke-linecap': 'round' }));
-    svg.appendChild(el('path', { d: 'M' + (PW/2 - 4) + ' ' + (PH - PB) + 'L' + (PW/2) + ' '
-      + (PH - PB - 7) + 'L' + (PW/2 + 4) + ' ' + (PH - PB) + 'Z', fill: '#16191e' }));
-  }
-
-
-  function paintAll() {
-    paintScene(); paintBars(); paintPlan();
-    document.getElementById('cf-count').textContent =
-      (cur + 1) + ' of ' + list.length;
-    document.getElementById('cf-prev').disabled = cur === 0;
-    document.getElementById('cf-next').disabled = cur === list.length - 1;
-  }
-
-  function setDir(k) {
-    dir = k; list = D.examples.filter(function (e) { return e.dir === k; });
-    cur = 0; showEdited = false; showDiff = false;
-    document.getElementById('cf-diffbtn').setAttribute('aria-pressed', 'false');
-    Array.prototype.forEach.call(document.getElementById('cf-dirs').children,
-      function (b) { b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'); });
-    paintAll();
-  }
-
-  function boot(data) {
-    D = data;
-    var host = document.getElementById('cf-dirs');
-    D.directions.forEach(function (d) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'cf__chip'; b.dataset.k = d.key;
-      b.textContent = d.label;
-      b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', function () { setDir(d.key); });
-      host.appendChild(b);
-    });
-    document.getElementById('cf-toggle').addEventListener('click', function () {
-      showEdited = !showEdited; paintScene(); paintPlan();
-    });
-    document.getElementById('cf-diffbtn').addEventListener('click', function () {
-      showDiff = !showDiff;
-      this.setAttribute('aria-pressed', showDiff ? 'true' : 'false');
-      paintScene();
-    });
-    document.getElementById('cf-prev').addEventListener('click', function () {
-      if (cur > 0) { cur--; showEdited = false; paintAll(); } });
-    document.getElementById('cf-next').addEventListener('click', function () {
-      if (cur < list.length - 1) { cur++; showEdited = false; paintAll(); } });
-
-    setDir(D.directions[0].key);
-  }
-
-  if (window.__CF_DATA__) boot(window.__CF_DATA__);
-  else fetch(ASSETS + 'counterfactual.json').then(function (r) { return r.json(); })
-    .then(boot).catch(function (e) {
-      document.getElementById('cf-cap').textContent =
-        'Could not load counterfactual.json (' + e.message + '). Serve this directory '
-        + 'over HTTP, or open standalone_counterfactual.html.';
-    });
-})();
-</script>
-<!-- End counterfactual scene viewer -->
 
 <!-- Youtube video (disabled)
 <section class="hero is-small is-light">
