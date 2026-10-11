@@ -108,6 +108,75 @@
   <!-- Fonts - Optimized loading -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Shared figure system: tokens, type, grid and buttons for .sae .tl .eal .cf -->
+<style>
+.sae,.tl,.eal,.cf{
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
+  --ink:rgba(0,0,0,.8);
+  --mute:rgba(0,0,0,.6);
+  --faint:rgba(0,0,0,.4);
+  --rule:rgba(0,0,0,.1);
+  --head:#16191e;
+  font-family:var(--sans);font-size:14px;line-height:1.6em;color:var(--ink);
+  background:transparent;text-size-adjust:100%;-webkit-text-size-adjust:100%;
+}
+.sae *,.tl *,.eal *,.cf *{box-sizing:border-box}
+@media(min-width:768px){ .sae,.tl,.eal,.cf{font-size:16px} }
+@media(min-width:1180px){ .sae,.tl,.eal,.cf{font-size:1.06rem;line-height:1.7em} }
+
+/* named-column grid: text measure in the middle, figures break out to the page column */
+.sae__grid,.tl__grid,.eal__grid,.cf__grid{
+  display:grid;padding-inline:16px;
+  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end];
+}
+.sae__grid > *,.tl__grid > *,.eal__grid > *,.cf__grid > *{grid-column:text}
+.sae__grid > .sae__breakout,.tl__grid > .tl__breakout,
+.eal__grid > .eal__breakout,.cf__grid > .cf__breakout{grid-column:page}
+@media(max-width:1180px){
+  .sae__grid,.tl__grid,.eal__grid,.cf__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}
+}
+@media(max-width:860px){
+  .sae__grid,.tl__grid,.eal__grid,.cf__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}
+}
+
+.sae h2,.tl h2,.eal h2,.cf h2{
+  font-weight:600;font-size:24px;line-height:1.25em;margin:2rem 0 1.5rem;
+  border-bottom:1px solid var(--rule);padding-bottom:1rem;color:var(--ink);
+}
+@media(min-width:768px){ .sae h2,.tl h2,.eal h2,.cf h2{font-size:36px} }
+.sae p,.tl p,.eal p,.cf p{margin:0 0 1em}
+
+.sae__fig,.tl__fig,.eal__fig,.cf__fig{position:relative;margin:1.5em 0 2.5em}
+.sae figcaption,.tl figcaption,.eal figcaption,.cf figcaption{
+  color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
+  padding-top:14px;border-top:1px solid var(--rule)}
+@media(min-width:768px){ .sae figcaption,.tl figcaption,.eal figcaption,.cf figcaption{font-size:13px} }
+.sae figcaption b,.tl figcaption b,.eal figcaption b,.cf figcaption b{color:var(--ink);font-weight:600}
+.sae figcaption:empty,.tl figcaption:empty,.eal figcaption:empty,.cf figcaption:empty{display:none}
+
+/* one button: reset / step / next / tabs / direction + cluster chips */
+.sae button.sae__reset,.eal button.eal__reset,.cf button.cf__btn,
+.tl button.tl__step,.tl button.tl__tab,.tl button.tl__play,
+.cf button.cf__chip,.eal button.eal__chip{
+  font-family:var(--sans);font-weight:500;font-size:14px;line-height:1.4em;
+  letter-spacing:normal;text-transform:none;color:var(--mute);background:none;
+  border:1px solid var(--rule);border-radius:0;padding:6px 14px;height:auto;cursor:pointer;
+}
+.sae button.sae__reset:hover:not(:disabled),.eal button.eal__reset:hover:not(:disabled),
+.cf button.cf__btn:hover:not(:disabled),.tl button.tl__step:hover:not(:disabled),
+.tl button.tl__tab:hover,.cf button.cf__chip:hover,.eal button.eal__chip:hover{
+  color:var(--ink);border-color:var(--faint)}
+.sae button.sae__reset:disabled,.eal button.eal__reset:disabled,
+.cf button.cf__btn:disabled,.tl button.tl__step:disabled{opacity:.35;cursor:default}
+/* selected tab / primary action */
+.tl button.tl__tab[aria-pressed="true"],.cf button.cf__chip[aria-pressed="true"],.tl button.tl__play,
+.tl button.tl__tab[aria-pressed="true"]:hover,.cf button.cf__chip[aria-pressed="true"]:hover,
+.tl button.tl__play:hover{color:#fff;background:var(--head);border-color:var(--head)}
+.tl .tl__ctl .tl__play{min-width:92px}
+
+</style>
+
   <!-- Interactive SAE steering widget (scoped to .sae) -->
 <style>
 /* ───────────────────────────────────────────────────────────────────────────
@@ -121,62 +190,19 @@
    Everything is scoped to .sae so it cannot collide with the page's Bulma.
    ─────────────────────────────────────────────────────────────────────────── */
 .sae{
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
-  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
-  --ink:rgba(0,0,0,.8);
-  --mute:rgba(0,0,0,.6);
-  --faint:rgba(0,0,0,.4);
-  --rule:rgba(0,0,0,.1);
   --plan:#2f6c9f;
   --edit:#b94a48;
-
-  font-family:var(--sans);
-  font-size:14px;
-  line-height:1.6em;
-  color:var(--ink);
-  background:#fff;
-  text-size-adjust:100%;
-  -webkit-text-size-adjust:100%;
 }
-.sae *{box-sizing:border-box}
-
-.sae__grid{
-  display:grid;
-  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end];
-  padding-inline:16px;
-}
-.sae__grid > *{grid-column:text}
-.sae__grid > .sae__breakout{grid-column:page}
-
-@media(max-width:1180px){
-  .sae__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}
-}
-@media(max-width:860px){
-  .sae__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}
-}
-
-/* distill: 14px base, 16px from 768, 1.06rem/1.7em from 1180 */
-@media(min-width:768px){ .sae{font-size:16px} }
-@media(min-width:1180px){ .sae{font-size:1.06rem;line-height:1.7em} }
-
-.sae h2{
-  font-family:var(--sans);font-weight:600;font-size:24px;line-height:1.25em;
-  margin:2rem 0 1.5rem 0;border-bottom:1px solid var(--rule);padding-bottom:1rem;
-  color:var(--ink);
-}
-@media(min-width:768px){ .sae h2{font-size:36px} }
 .sae h3{
   font-family:var(--sans);font-weight:700;font-size:18px;line-height:1.4em;
   margin:2em 0 1em;color:var(--ink);
 }
 @media(min-width:768px){ .sae h3{font-size:20px} }
-.sae p{margin:0 0 1em;font-size:inherit;line-height:inherit;color:var(--ink)}
 .sae a{color:inherit;border-bottom:1px solid var(--faint);text-decoration:none}
 .sae code{font-family:var(--mono);font-size:.85em;font-variant-numeric:tabular-nums;
   color:inherit;background:rgba(0,0,0,.04);padding:.08em .34em;border-radius:2px}
 
 /* ── figure ─────────────────────────────────────────────────────────────── */
-.sae__fig{position:relative;margin:1.5em 0 2.5em}
 .sae__views{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
 .sae__cam{position:relative;background:rgba(0,0,0,.04);overflow:hidden}
 .sae__cam img{display:block;width:100%;height:auto;max-width:100%}
@@ -228,19 +254,6 @@
   background:rgba(0,0,0,.8);border:none;box-shadow:none}
 
 .sae__actions{display:flex;justify-content:flex-end;margin-top:12px}
-.sae button.sae__reset{
-  font-family:'Inter',sans-serif;font-weight:500;text-transform:none;font-size:14px;
-  line-height:1.4em;letter-spacing:normal;color:var(--mute);background:none;
-  border:1px solid var(--rule);padding:6px 14px;cursor:pointer;border-radius:0;height:auto;
-}
-.sae button.sae__reset:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
-.sae button.sae__reset:disabled{opacity:.35;cursor:default}
-
-.sae figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
-  padding-top:14px;border-top:1px solid var(--rule)}
-@media(min-width:768px){ .sae figcaption{font-size:13px} }
-.sae figcaption b{color:var(--ink);font-weight:600}
-
 @media (max-width:860px){
   .sae__views{grid-template-columns:minmax(0,1fr)}
   .sae__sliders{grid-template-columns:minmax(0,1fr);gap:0}
@@ -255,39 +268,15 @@
 /* Scoped to .tl so it can sit beside .sae, .eal and .cf on the project page.
    Same system as those: distill's type values, no webfonts, the paper's palette. */
 .tl{
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
-  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
-  --ink:rgba(0,0,0,.82);
-  --mute:rgba(0,0,0,.6);
-  --faint:rgba(0,0,0,.38);
-  --rule:rgba(0,0,0,.12);
   --sunk:rgba(0,0,0,.04);
   --surface:#fff;
   --plan:#2f6c9f;
   --warm:#b94a48;
-  --head:#16191e;
-  font-family:var(--sans);font-size:14px;line-height:1.6em;color:var(--ink);
-  background:var(--surface);-webkit-text-size-adjust:100%;
 }
-
-.tl *{box-sizing:border-box}
-@media(min-width:768px){ .tl{font-size:16px} }
-.tl__wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px 44px}
-.tl h2{font-weight:600;font-size:24px;line-height:1.25em;margin:0 0 .9rem;
-  border-bottom:1px solid var(--rule);padding-bottom:1rem;text-wrap:balance}
-@media(min-width:768px){ .tl h2{font-size:32px} }
-.tl p{margin:0 0 1em;max-width:68ch}
-
-.tl__tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 14px}
-.tl button{font-family:var(--sans);border-radius:0;cursor:pointer}
-.tl button.tl__tab{font-size:14px;color:var(--mute);background:none;
-  border:1px solid var(--rule);padding:6px 13px;line-height:1.4}
-.tl button.tl__tab:hover{border-color:var(--faint);color:var(--ink)}
-.tl button.tl__tab[aria-pressed="true"]{color:var(--surface);background:var(--head);
-  border-color:var(--head)}
+.tl__tabs{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 16px}
 .tl button:focus-visible,.tl__track:focus-visible{outline:2px solid var(--plan);outline-offset:2px}
 
-.tl__blurb{font-size:13.5px;color:var(--mute);margin:0 0 14px;max-width:72ch}
+.tl__blurb{font-size:12px;line-height:1.5em;color:var(--mute);margin:0 0 14px;max-width:72ch}
 
 .tl__stage{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:12px;align-items:start}
 @media(max-width:760px){ .tl__stage{grid-template-columns:minmax(0,1fr)} }
@@ -304,11 +293,6 @@
 .tl__bevcap{font-size:11px;color:var(--faint);padding:5px 8px;line-height:1.4}
 
 .tl__ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:12px 0 6px}
-.tl button.tl__play{font-size:14px;color:var(--surface);background:var(--head);
-  border:1px solid var(--head);padding:6px 16px;min-width:92px}
-.tl button.tl__step{font-size:13px;color:var(--mute);background:none;
-  border:1px solid var(--rule);padding:6px 11px}
-.tl button.tl__step:hover{border-color:var(--faint);color:var(--ink)}
 .tl__t{font-family:var(--mono);font-size:12.5px;color:var(--mute);
   font-variant-numeric:tabular-nums}
 .tl__spacer{flex:1 1 auto}
@@ -329,10 +313,6 @@
   font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--ink);max-width:250px}
 .tl__tip b{font-weight:600}
 
-.tl__foot{margin-top:20px;padding-top:13px;border-top:1px solid var(--rule);
-  font-size:12.5px;color:var(--mute);line-height:1.55em}
-@media(min-width:768px){ .tl__foot{font-size:13px} }
-.tl__foot b{color:var(--ink);font-weight:600}
 </style>
 
   <!-- Interactive alignment figure (scoped to .eal) -->
@@ -344,45 +324,11 @@
    Cluster colours are exactly plot_edit_to_steering_alignment.py:72-84.
    ─────────────────────────────────────────────────────────────────────────── */
 .eal{
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
-  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
-  --ink:rgba(0,0,0,.8);
-  --mute:rgba(0,0,0,.6);
-  --faint:rgba(0,0,0,.4);
-  --rule:rgba(0,0,0,.1);
   --grid:#D8DCE2;
   --zero:#9EA5B1;
-
-  font-family:var(--sans);font-size:14px;line-height:1.6em;
-  color:var(--ink);background:transparent;
-  -webkit-text-size-adjust:100%;
 }
-.eal *{box-sizing:border-box}
-@media(min-width:768px){ .eal{font-size:16px} }
-@media(min-width:1180px){ .eal{font-size:1.06rem;line-height:1.7em} }
-
-.eal__grid{
-  display:grid;
-  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end];
-  padding-inline:16px;
-}
-.eal__grid > *{grid-column:text}
-.eal__grid > .eal__breakout{grid-column:page}
-@media(max-width:1180px){
-  .eal__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}
-}
-@media(max-width:860px){
-  .eal__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}
-}
-
-.eal h2{font-weight:600;font-size:24px;line-height:1.25em;margin:2rem 0 1.5rem;
-  border-bottom:1px solid var(--rule);padding-bottom:1rem;color:var(--ink)}
-@media(min-width:768px){ .eal h2{font-size:36px} }
-.eal p{margin:0 0 1em}
 .eal code{font-family:var(--mono);font-size:.85em;background:rgba(0,0,0,.04);
   padding:.08em .34em;border-radius:2px;font-variant-numeric:tabular-nums}
-
-.eal__fig{position:relative;margin:1.5em 0 2.5em}
 
 /* ── controls ───────────────────────────────────────────────────────────── */
 .eal__ctl{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);
@@ -407,11 +353,9 @@
   background:rgba(0,0,0,.8);border:none}
 
 .eal__chips{display:flex;flex-wrap:wrap;gap:7px}
-.eal__chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
-  padding:4px 10px 4px 7px;border:1px solid var(--rule);background:none;cursor:pointer;
-  color:var(--ink);font-family:var(--sans);line-height:1.5}
-.eal__chip:hover{border-color:var(--faint)}
-.eal__chip[aria-pressed=false]{color:var(--faint);border-style:dashed}
+.eal button.eal__chip{display:inline-flex;align-items:center;gap:7px;
+  padding:6px 14px 6px 10px;color:var(--ink)}
+.eal button.eal__chip[aria-pressed=false]{color:var(--faint);border-style:dashed}
 .eal__chip[aria-pressed=false] .eal__dot{opacity:.3}
 .eal__dot{width:9px;height:9px;border-radius:50%;flex:none}
 .eal__chip em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--faint)}
@@ -437,17 +381,6 @@
 
 .eal__foot{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:baseline;margin-top:14px}
 .eal__spacer{flex:1 1 auto}
-.eal button.eal__reset{font-family:'Inter',sans-serif;font-weight:500;text-transform:none;
-  font-size:14px;line-height:1.4em;letter-spacing:normal;color:var(--mute);background:none;
-  border:1px solid var(--rule);padding:6px 14px;cursor:pointer;border-radius:0}
-.eal button.eal__reset:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
-.eal button.eal__reset:disabled{opacity:.35;cursor:default}
-
-.eal figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
-  padding-top:14px;border-top:1px solid var(--rule)}
-@media(min-width:768px){ .eal figcaption{font-size:13px} }
-.eal figcaption b{color:var(--ink);font-weight:600}
-
 @media(max-width:700px){ .eal__ctl{grid-template-columns:minmax(0,1fr)} }
 </style>
 
@@ -456,37 +389,12 @@
 /* Scoped to .cf. Same system as the other two figures: distill type values,
    the paper's palette (#2F6C9F original, #B94A48 edited, #C45A2A negative bars). */
 .cf{
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
-  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
-  --ink:rgba(0,0,0,.8); --mute:rgba(0,0,0,.6); --faint:rgba(0,0,0,.4);
-  --rule:rgba(0,0,0,.1); --grid:#D8DCE2;
+  --grid:#D8DCE2;
   --orig:#2f6c9f; --edit:#b94a48; --neg:#c45a2a;
-  font-family:var(--sans);font-size:14px;line-height:1.6em;color:var(--ink);background:#fff;
 }
-.cf *{box-sizing:border-box}
-@media(min-width:768px){ .cf{font-size:16px} }
-@media(min-width:1180px){ .cf{font-size:1.06rem;line-height:1.7em} }
-
-.cf__grid{display:grid;padding-inline:16px;
-  grid-template-columns:[screen-start] 1fr [page-start] 88px [middle-start] 88px [text-start] 88px 88px 88px 88px 88px 88px 88px 88px [text-end] 88px [middle-end] 88px [page-end] 1fr [screen-end]}
-.cf__grid > *{grid-column:text}
-.cf__grid > .cf__breakout{grid-column:page}
-@media(max-width:1180px){.cf__grid{grid-template-columns:[screen-start] 1fr [page-start] 56px [middle-start] 56px [text-start] 56px 56px 56px 56px 56px 56px 56px 56px [text-end] 56px [middle-end] 56px [page-end] 1fr [screen-end]}}
-@media(max-width:860px){.cf__grid{grid-template-columns:[screen-start page-start middle-start text-start] minmax(0,1fr) [text-end middle-end page-end screen-end]}}
-
-.cf h2{font-weight:600;font-size:24px;line-height:1.25em;margin:2rem 0 1.5rem;
-  border-bottom:1px solid var(--rule);padding-bottom:1rem}
-@media(min-width:768px){ .cf h2{font-size:36px} }
-.cf p{margin:0 0 1em}
 .cf code{font-family:var(--mono);font-size:.85em;background:rgba(0,0,0,.04);padding:.08em .34em}
 
-.cf__fig{margin:1.5em 0 2.5em}
 .cf__chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
-.cf__chip{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:1.4;
-  padding:5px 12px;border:1px solid var(--rule);background:none;cursor:pointer;color:var(--ink)}
-.cf__chip:hover{border-color:var(--faint)}
-.cf__chip[aria-pressed=true]{border-color:rgba(0,0,0,.65);color:#000}
-
 /* three linked panes */
 .cf__panes{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.85fr) 250px;
   gap:18px;align-items:start}
@@ -508,19 +416,10 @@
 
 
 .cf__nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
-.cf button.cf__btn{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;line-height:1.4;
-  color:var(--mute);background:none;border:1px solid var(--rule);padding:5px 12px;cursor:pointer}
-.cf button.cf__btn:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
-.cf button.cf__btn:disabled{opacity:.35;cursor:default}
 .cf__keys{display:flex;gap:14px;margin-top:8px}
 .cf__count{font-family:var(--mono);font-size:12px;color:var(--faint)}
 .cf__key{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
 .cf__key i{width:18px;height:3px;display:inline-block}
-
-.cf figcaption:empty{display:none}
-.cf figcaption{color:var(--mute);font-size:12px;line-height:1.5em;margin-top:18px;
-  padding-top:14px;border-top:1px solid var(--rule)}
-@media(min-width:768px){ .cf figcaption{font-size:13px} }
 
 @media(max-width:980px){ .cf__panes{grid-template-columns:minmax(0,1fr)} }
 </style>
@@ -1071,15 +970,16 @@
 <!-- End interactive SAE steering -->
 
 <!-- Activation timeline -->
-<section class="hero is-small">
+<section class="hero is-small is-light">
   <div class="hero-body" style="padding:0">
-    <div class="tl"><div class="tl__wrap">
+    <div class="tl"><div class="tl__grid">
 
       <h2>When does a latent fire?</h2>
       <p>The gallery asks what a latent responds to. This asks when. Scrub the clip and watch
          the rows underneath: the two route-intent latents light up across the turns, and
          everything below them is longitudinal.</p>
 
+      <figure class="tl__fig tl__breakout">
       <div class="tl__tabs" id="tl-tabs"></div>
       <p class="tl__blurb" id="tl-blurb"></p>
 
@@ -1119,7 +1019,7 @@
       </div>
       <div class="tl__tip" id="tl-tip" hidden></div>
 
-      <p class="tl__foot">
+      <figcaption>
         The strip is every frame of the clip; the rows beneath are the latent's activation on
         that frame, dark for zero and solid at the latent's maximum <b>over the whole
         validation split</b> — so a faint row here means faint everywhere, and rows can be
@@ -1145,7 +1045,8 @@
         <br><br>
         The camera spans 46°, so during a sharp turn or a stop the plan leaves the image
         entirely and only the top-down panel shows it.
-      </p>
+      </figcaption>
+      </figure>
 
     </div></div>
   </div>
@@ -1544,7 +1445,7 @@
 <!-- End activation timeline -->
 
 <!-- Interactive alignment figure -->
-<section class="hero is-small is-light">
+<section class="hero is-small">
   <div class="hero-body" style="padding:0">
     <div class="eal">
     <div class="eal__grid">
@@ -1880,7 +1781,7 @@
 <!-- End interactive alignment figure -->
 
 <!-- Counterfactual scene viewer -->
-<section class="hero is-small">
+<section class="hero is-small is-light">
   <div class="hero-body" style="padding:0">
     <div class="cf"><div class="cf__grid">
       <h2>Does the feature respond to what the model sees?</h2>
@@ -2199,7 +2100,7 @@
 End youtube video -->
 
 <!--BibTex citation -->
-  <section class="section" id="BibTeX" style="background:var(--background-secondary);border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color)">
+  <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
       <div class="bibtex-header">
         <h2 class="title">BibTeX</h2>
