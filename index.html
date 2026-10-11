@@ -250,6 +250,91 @@
 }
 </style>
   
+  <!-- Activation timeline (scoped to .tl) -->
+<style>
+/* Scoped to .tl so it can sit beside .sae, .eal and .cf on the project page.
+   Same system as those: distill's type values, no webfonts, the paper's palette. */
+.tl{
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;
+  --ink:rgba(0,0,0,.82);
+  --mute:rgba(0,0,0,.6);
+  --faint:rgba(0,0,0,.38);
+  --rule:rgba(0,0,0,.12);
+  --sunk:rgba(0,0,0,.04);
+  --surface:#fff;
+  --plan:#2f6c9f;
+  --warm:#b94a48;
+  --head:#16191e;
+  font-family:var(--sans);font-size:14px;line-height:1.6em;color:var(--ink);
+  background:var(--surface);-webkit-text-size-adjust:100%;
+}
+
+.tl *{box-sizing:border-box}
+@media(min-width:768px){ .tl{font-size:16px} }
+.tl__wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px 44px}
+.tl h2{font-weight:600;font-size:24px;line-height:1.25em;margin:0 0 .9rem;
+  border-bottom:1px solid var(--rule);padding-bottom:1rem;text-wrap:balance}
+@media(min-width:768px){ .tl h2{font-size:32px} }
+.tl p{margin:0 0 1em;max-width:68ch}
+
+.tl__tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 14px}
+.tl button{font-family:var(--sans);border-radius:0;cursor:pointer}
+.tl button.tl__tab{font-size:14px;color:var(--mute);background:none;
+  border:1px solid var(--rule);padding:6px 13px;line-height:1.4}
+.tl button.tl__tab:hover{border-color:var(--faint);color:var(--ink)}
+.tl button.tl__tab[aria-pressed="true"]{color:var(--surface);background:var(--head);
+  border-color:var(--head)}
+.tl button:focus-visible,.tl__track:focus-visible{outline:2px solid var(--plan);outline-offset:2px}
+
+.tl__blurb{font-size:13.5px;color:var(--mute);margin:0 0 14px;max-width:72ch}
+
+.tl__stage{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:12px;align-items:start}
+@media(max-width:760px){ .tl__stage{grid-template-columns:minmax(0,1fr)} }
+.tl__screen{position:relative;background:#0c0e11;border:1px solid var(--rule);
+  overflow:hidden;aspect-ratio:16/9}
+.tl__film{position:absolute;inset:0;background-repeat:no-repeat;image-rendering:auto}
+.tl__over{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tl__hud{position:absolute;left:0;right:0;bottom:0;display:flex;gap:14px;
+  padding:7px 10px;background:linear-gradient(transparent,rgba(0,0,0,.6));
+  font-family:var(--mono);font-size:11.5px;color:#fff;font-variant-numeric:tabular-nums}
+.tl__hud b{font-weight:600}
+.tl__bev{border:1px solid var(--rule);background:var(--surface)}
+.tl__bev canvas{display:block;width:100%;height:auto}
+.tl__bevcap{font-size:11px;color:var(--faint);padding:5px 8px;line-height:1.4}
+
+.tl__ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:12px 0 6px}
+.tl button.tl__play{font-size:14px;color:var(--surface);background:var(--head);
+  border:1px solid var(--head);padding:6px 16px;min-width:92px}
+.tl button.tl__step{font-size:13px;color:var(--mute);background:none;
+  border:1px solid var(--rule);padding:6px 11px}
+.tl button.tl__step:hover{border-color:var(--faint);color:var(--ink)}
+.tl__t{font-family:var(--mono);font-size:12.5px;color:var(--mute);
+  font-variant-numeric:tabular-nums}
+.tl__spacer{flex:1 1 auto}
+.tl__rate{font-size:11.5px;color:var(--faint)}
+
+.tl__track{border:1px solid var(--rule);background:var(--surface);
+  cursor:crosshair;user-select:none;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch}
+.tl__inner{position:relative}
+.tl__track canvas{display:block}
+.tl__head{position:absolute;top:0;bottom:0;width:1px;background:var(--warm);
+  pointer-events:none}
+.tl__head::after{content:"";position:absolute;top:0;left:-3px;border-left:3.5px solid transparent;
+  border-right:3.5px solid transparent;border-top:5px solid var(--warm)}
+
+.tl__tip{position:fixed;z-index:60;pointer-events:none;background:var(--surface);
+  border:1px solid var(--rule);box-shadow:0 2px 10px rgba(0,0,0,.12);padding:7px 9px;
+  font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--ink);max-width:250px}
+.tl__tip b{font-weight:600}
+
+.tl__foot{margin-top:20px;padding-top:13px;border-top:1px solid var(--rule);
+  font-size:12.5px;color:var(--mute);line-height:1.55em}
+@media(min-width:768px){ .tl__foot{font-size:13px} }
+.tl__foot b{color:var(--ink);font-weight:600}
+</style>
+
   <!-- Interactive alignment figure (scoped to .eal) -->
 <style>
 /* ───────────────────────────────────────────────────────────────────────────
@@ -984,6 +1069,479 @@
 })();
 </script>
 <!-- End interactive SAE steering -->
+
+<!-- Activation timeline -->
+<section class="hero is-small">
+  <div class="hero-body" style="padding:0">
+    <div class="tl"><div class="tl__wrap">
+
+      <h2>When does a latent fire?</h2>
+      <p>The gallery asks what a latent responds to. This asks when. Scrub the clip and watch
+         the rows underneath: the two route-intent latents light up across the turns, and
+         everything below them is longitudinal.</p>
+
+      <div class="tl__tabs" id="tl-tabs"></div>
+      <p class="tl__blurb" id="tl-blurb"></p>
+
+      <div class="tl__stage">
+        <div class="tl__screen">
+          <div class="tl__film" id="tl-film"></div>
+          <canvas class="tl__over" id="tl-over"></canvas>
+          <div class="tl__hud">
+            <span id="tl-hud-t"></span>
+            <span id="tl-hud-v"></span>
+            <span id="tl-hud-f"></span>
+            <span id="tl-hud-ade"></span>
+          </div>
+        </div>
+        <div>
+          <div class="tl__bev"><canvas id="tl-bev" width="420" height="420"></canvas></div>
+          <div class="tl__bevcap" id="tl-bevcap"></div>
+        </div>
+      </div>
+
+      <div class="tl__ctl">
+        <button type="button" class="tl__play" id="tl-play">Play</button>
+        <button type="button" class="tl__step" id="tl-prev">&minus;1</button>
+        <button type="button" class="tl__step" id="tl-next">+1</button>
+        <span class="tl__t" id="tl-time"></span>
+        <button type="button" class="tl__step" id="tl-gt" aria-pressed="false">Show ground truth</button>
+        <span class="tl__spacer"></span>
+        <span class="tl__rate">4&nbsp;Hz, 0.25&nbsp;s per frame</span>
+      </div>
+
+      <div class="tl__track" id="tl-track" tabindex="0" role="slider"
+           aria-label="Scrub the clip" aria-valuemin="0" aria-valuenow="0">
+        <div class="tl__inner" id="tl-inner">
+          <canvas id="tl-canvas"></canvas>
+          <div class="tl__head" id="tl-headline"></div>
+        </div>
+      </div>
+      <div class="tl__tip" id="tl-tip" hidden></div>
+
+      <p class="tl__foot">
+        The strip is every frame of the clip; the rows beneath are the latent's activation on
+        that frame, dark for zero and solid at the latent's maximum <b>over the whole
+        validation split</b> — so a faint row here means faint everywhere, and rows can be
+        compared between clips. Activations are measured at 4&nbsp;Hz, the same rate as the
+        frames; nothing is interpolated.
+        <br><br>
+        <b>Brake</b> and <b>Accelerate</b> are not the latents the steering figure names. Those
+        were identified by what driving them does. These two were chosen by what they respond
+        to: the planner's 5&nbsp;s path implies a mean speed, and the ratio of that to the
+        speed the car is actually doing says whether it intends to gain or lose speed,
+        independent of how fast it is going. Latent&nbsp;12 fires when that ratio is 0.28 and
+        the car is decelerating at 1.5&nbsp;m/s²; latent&nbsp;195 when it is 2.31 and the car
+        is gaining 0.9&nbsp;m/s².
+        <br><br>
+        The path drawn on the camera and from above is the plan the model would execute at
+        that instant, the lowest predicted ADE of its 50 proposals. It is a prediction, not
+        the route the car took, and <b>Show ground truth</b> puts the recorded route beside it.
+        Expect a gap. These four clips were chosen for having turns and queued traffic in
+        them, which are the hard cases: their median ADE runs 1.45 to 3.06&nbsp;m against
+        1.07&nbsp;m across the validation split, and the error grows along the path, so the
+        far end of the red line can sit several metres off the blue. That is the model, not a
+        drawing error.
+        <br><br>
+        The camera spans 46°, so during a sharp turn or a stop the plan leaves the image
+        entirely and only the top-down panel shows it.
+      </p>
+
+    </div></div>
+  </div>
+</section>
+
+<script data-assets="static/sae/">
+(function () {
+  "use strict";
+  // Where timeline.json and the sprites live, relative to the page. Empty when the page
+  // owns its own directory; the project page passes static/sae/ on the script tag.
+  var ASSETS = (document.currentScript && document.currentScript.dataset.assets) || '';
+  var D = null, W = null, i = 0, playing = false, timer = null, drag = false, showGT = false;
+  var PLAN = '#2f6c9f', TRUTH = '#b94a48';
+  // All in CSS pixels. The canvas used to carry a fixed 1800-pixel backing store with
+  // text sized for it, which meant everything shrank with the element: at a 390 px
+  // viewport a 20 px row label rendered at 4.3 px. The backing store is now sized from
+  // the element and a device-pixel ratio, and the track scrolls below MINW rather than
+  // squashing.
+  var ROWH = 46, FILMH = 92, LABW = 128, MINW = 580;
+
+  function $(id) { return document.getElementById(id); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  // Same pinhole the steering figure uses, and the parameters are constant within a
+  // segment, so one set per clip is enough.
+  function project(p) {
+    var c = W.camera, z = p[0] - c.t[0];
+    if (z <= 0.15) return null;
+    return [c.f * (-(p[1] - c.t[1]) / z) + c.cx,
+            c.f * (-(c.z_road - c.t[2]) / z) + c.cy];
+  }
+
+  // Line weights are the steering figure's own, taken from its source and scaled by
+  // tile width / 1600 because that figure draws into a 1600x900 viewBox and this one
+  // into a 384x216 tile. Same proportions on screen, so the two read as one system:
+  // a 15-unit white casing, a 7.5-unit coloured line, and a filled dot with a white
+  // outline on every fourth waypoint.
+  function SC() { return W.tile[0] / 1600; }
+
+  function runs(pts) {
+    var out = [], run = [];
+    for (var j = 0; j < pts.length; j++) {
+      var q = project(pts[j]);
+      if (!q) { if (run.length > 1) out.push(run); run = []; }
+      else run.push(q);
+    }
+    if (run.length > 1) out.push(run);
+    return out;
+  }
+
+  function trace(g, rs, colour, width, dash) {
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    g.setLineDash(dash || []);
+    g.strokeStyle = colour; g.lineWidth = width;
+    for (var r = 0; r < rs.length; r++) {
+      g.beginPath();
+      for (var k = 0; k < rs[r].length; k++) {
+        var P = rs[r][k];
+        if (k === 0) g.moveTo(P[0], P[1]); else g.lineTo(P[0], P[1]);
+      }
+      g.stroke();
+    }
+    g.setLineDash([]);
+  }
+
+  function drawPlanCam(g, pts) {
+    var k = SC(), rs = runs(pts);
+    if (!rs.length) return;
+    trace(g, rs, 'rgba(255,255,255,.82)', 15 * k);
+    trace(g, rs, PLAN, 7.5 * k);
+    g.lineWidth = 2.4 * k;
+    g.strokeStyle = '#fff';
+    g.fillStyle = PLAN;
+    for (var j = 3; j < pts.length; j += 4) {
+      var q = project(pts[j]);
+      if (!q) continue;
+      g.beginPath();
+      g.arc(q[0], q[1], 6.5 * k, 0, 6.2832);
+      g.fill(); g.stroke();
+    }
+  }
+
+  function drawTruthCam(g, pts) {
+    // the figure's own idiom for a reference path: a soft white casing under a dashed
+    // line, so it never competes with the plan it is being compared against
+    var k = SC(), rs = runs(pts);
+    if (!rs.length) return;
+    trace(g, rs, 'rgba(255,255,255,.45)', 9 * k);
+    trace(g, rs, TRUTH, 3.6 * k, [3 * k * 3, 9 * k * 1.1]);
+  }
+
+  function drawOverlay() {
+    var cv = document.getElementById('tl-over');
+    var box = cv.parentElement.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(box.width * dpr);
+    cv.height = Math.round(box.height * dpr);
+    var g = cv.getContext('2d');
+    g.clearRect(0, 0, cv.width, cv.height);
+    // the camera model is in tile pixels; scale it to however large the element is
+    var sc = (box.width / W.tile[0]) * dpr;
+    g.save(); g.scale(sc, sc);
+    if (showGT) drawTruthCam(g, W.truth[i]);
+    drawPlanCam(g, W.plans[i]);
+    g.restore();
+  }
+
+  function showFrame(k) {
+    i = clamp(k, 0, W.n - 1);
+    var film = $('tl-film'), box = film.parentElement.getBoundingClientRect();
+    var tw = W.tile[0], th = W.tile[1];
+    var scale = box.width / tw;
+    film.style.backgroundImage = 'url(' + ASSETS + W.sheet + ')';
+    film.style.backgroundSize = (tw * W.cols * scale) + 'px auto';
+    film.style.backgroundPosition =
+      (-(i % W.cols) * tw * scale) + 'px ' + (-Math.floor(i / W.cols) * th * scale) + 'px';
+
+    $('tl-hud-t').textContent = (i * W.dt).toFixed(2) + ' s';
+    $('tl-hud-v').textContent = W.speed[i].toFixed(1) + ' m/s';
+    $('tl-hud-f').textContent = 'frame ' + (W.f0 + i);
+    $('tl-hud-ade').textContent = 'ADE ' + W.ade[i].toFixed(2) + ' m';
+    $('tl-time').textContent = (i * W.dt).toFixed(2) + ' / ' + ((W.n - 1) * W.dt).toFixed(2) + ' s';
+    $('tl-track').setAttribute('aria-valuenow', i);
+    $('tl-headline').style.left =
+      (LABW + (i + 0.5) / W.n * (designW() - LABW)) + 'px';
+    drawOverlay();
+    drawBev();
+  }
+
+  // the drawing width: the element's, or MINW with the track scrolling under it
+  function designW() {
+    return Math.max($('tl-track').clientWidth || MINW, MINW);
+  }
+
+  function drawBev() {
+    var c = $('tl-bev'), g = c.getContext('2d');
+    var S = c.width, H = c.height;
+    g.clearRect(0, 0, S, H);
+    var css = getComputedStyle(document.querySelector('.tl'));
+    g.fillStyle = css.getPropertyValue('--surface') || '#fff';
+    g.fillRect(0, 0, S, H);
+    var p = W.plans[i];
+    var FWD = 60, LAT = 30, PT = 22, PB = 34;
+    var px = function (y) { return S / 2 - (y / LAT) * (S / 2 - 16); };
+    var py = function (x) { return H - PB - (x / FWD) * (H - PT - PB); };
+    g.strokeStyle = css.getPropertyValue('--rule') || 'rgba(0,0,0,.12)';
+    g.lineWidth = 1;
+    g.font = '15px ' + (css.getPropertyValue('--mono') || 'monospace');
+    g.fillStyle = css.getPropertyValue('--faint') || 'rgba(0,0,0,.38)';
+    for (var m = 20; m <= FWD; m += 20) {
+      g.beginPath(); g.moveTo(12, py(m)); g.lineTo(S - 12, py(m)); g.stroke();
+      g.fillText(m + ' m', 16, py(m) - 6);
+    }
+    for (var k = -20; k <= 20; k += 20) {
+      g.beginPath(); g.moveTo(px(k), PT); g.lineTo(px(k), H - PB); g.stroke();
+    }
+    g.strokeStyle = css.getPropertyValue('--faint') || 'rgba(0,0,0,.38)';
+    g.setLineDash([4, 5]);
+    g.beginPath(); g.moveTo(px(0), PT); g.lineTo(px(0), H - PB); g.stroke();
+    g.setLineDash([]);
+    // same weights as the figure's top-down panel, scaled from its 300-wide box
+    var kb = S / 300;
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    function path(tr, colour, w, dash, dots) {
+      g.setLineDash(dash || []);
+      g.strokeStyle = colour; g.lineWidth = w;
+      g.beginPath();
+      for (var j = 0; j < tr.length; j++) {
+        var X = px(tr[j][1]), Y = py(tr[j][0]);
+        if (j === 0) g.moveTo(X, Y); else g.lineTo(X, Y);
+      }
+      g.stroke();
+      g.setLineDash([]);
+      if (dots) {
+        g.fillStyle = colour;
+        for (var m2 = 3; m2 < tr.length; m2 += 4) {
+          g.beginPath();
+          g.arc(px(tr[m2][1]), py(tr[m2][0]), 2.1 * kb, 0, 6.2832);
+          g.fill();
+        }
+      }
+    }
+    if (showGT) path(W.truth[i], TRUTH, 1.8 * kb, [3 * kb, 5 * kb], false);
+    path(p, PLAN, 2.6 * kb, null, true);
+    g.fillStyle = css.getPropertyValue('--head') || '#16191e';
+    g.beginPath();
+    g.moveTo(S / 2 - 8, H - PB); g.lineTo(S / 2, H - PB - 13);
+    g.lineTo(S / 2 + 8, H - PB); g.closePath(); g.fill();
+    g.fillStyle = css.getPropertyValue('--faint') || 'rgba(0,0,0,.38)';
+    g.fillText('±' + LAT + ' m', 14, H - 12);
+  }
+
+  var trackToken = 0;
+
+  function drawTrack() {
+    var c = $('tl-canvas'), g = c.getContext('2d');
+    var rows = W.acts;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var Wd = designW();
+    var Hd = FILMH + rows.length * ROWH + 22;
+    c.style.width = Wd + 'px';
+    c.style.height = Hd + 'px';
+    c.width = Math.round(Wd * dpr);
+    c.height = Math.round(Hd * dpr);
+    $('tl-inner').style.width = Wd + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var css = getComputedStyle(document.querySelector('.tl'));
+    var surface = css.getPropertyValue('--surface') || '#fff';
+    var ink = css.getPropertyValue('--ink') || '#000';
+    var faint = css.getPropertyValue('--faint') || '#888';
+    var rule = css.getPropertyValue('--rule') || '#ddd';
+    g.fillStyle = surface; g.fillRect(0, 0, Wd, Hd);
+
+    var x0 = LABW, W0 = Wd - LABW, cw = W0 / W.n;
+
+    // A sprite is 1.5 to 2.4 MB. Switching tabs before one arrives used to let the old
+    // load paint thumbnails from the previous drive, sized by the previous clip, over
+    // the new one. The token makes a late arrival a no-op.
+    var token = ++trackToken;
+    var clip = W;
+    var img = new Image();
+    img.onload = function () {
+      if (token !== trackToken || clip !== W) return;
+      var step = Math.max(1, Math.round(clip.n / 26));
+      var tw = clip.tile[0], th = clip.tile[1];
+      var dw = step * cw, dh = FILMH;
+      for (var k = 0; k < clip.n; k += step) {
+        var sx = (k % clip.cols) * tw, sy = Math.floor(k / clip.cols) * th;
+        var sw = Math.min(tw, tw * (dw / (dh * tw / th)));
+        g.drawImage(img, sx + (tw - sw) / 2, sy, sw, th, x0 + k * cw, 0, dw, dh);
+      }
+      g.strokeStyle = rule; g.lineWidth = 1;
+      g.strokeRect(x0, 0, W0, FILMH);
+      paintRows(g, Wd, Hd, x0, W0, cw, rows, css, ink, faint, rule, surface);
+    };
+    img.src = ASSETS + clip.sheet;
+  }
+
+  function paintRows(g, Wd, Hd, x0, W0, cw, rows, css, ink, faint, rule, surface) {
+    g.textBaseline = 'middle';
+    rows.forEach(function (A, r) {
+      var y = FILMH + r * ROWH;
+      g.fillStyle = surface; g.fillRect(0, y, Wd, ROWH);
+      for (var k = 0; k < W.n; k++) {
+        var t = Math.max(0, A.v[k]) / (A.vmax || 1);
+        g.fillStyle = 'rgba(47,108,159,' + (0.06 + 0.94 * Math.pow(t, 0.75)).toFixed(3) + ')';
+        if (t <= 0) g.fillStyle = css.getPropertyValue('--sunk') || 'rgba(0,0,0,.04)';
+        g.fillRect(x0 + k * cw, y + 6, Math.ceil(cw) + 0.5, ROWH - 12);
+      }
+      g.strokeStyle = rule; g.lineWidth = 1;
+      g.strokeRect(x0, y + 6, W0, ROWH - 12);
+      if (!A.v.some(function (x) { return x > 0; })) {
+        g.fillStyle = faint;
+        g.font = 'italic 11px ' + (css.getPropertyValue('--sans') || 'sans-serif');
+        g.fillText('silent throughout this clip', x0 + 10, y + ROWH / 2);
+      }
+      g.fillStyle = ink;
+      g.font = '600 13px ' + (css.getPropertyValue('--sans') || 'sans-serif');
+      g.fillText(A.label, 8, y + ROWH / 2 - 7);
+      g.fillStyle = faint;
+      g.font = '11px ' + (css.getPropertyValue('--mono') || 'monospace');
+      g.fillText('latent ' + A.id, 8, y + ROWH / 2 + 9);
+    });
+    var y2 = FILMH + rows.length * ROWH;
+    g.fillStyle = faint;
+    g.font = '11px ' + (css.getPropertyValue('--mono') || 'monospace');
+    var tick = (W.n * W.dt) > 40 ? 10 : 5;
+    for (var s2 = 0; s2 <= (W.n - 1) * W.dt; s2 += tick) {
+      var X = x0 + (s2 / W.dt) * cw;
+      g.fillRect(X, y2 + 2, 1, 5);
+      g.fillText(s2 + 's', X + 4, y2 + 12);
+    }
+  }
+
+  // x is measured against the canvas, not the scroll container, so scrubbing stays
+  // correct once the track is wide enough to scroll
+  function fracFromEvent(e) {
+    var r = $('tl-canvas').getBoundingClientRect();
+    var x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    return (x - LABW) / (designW() - LABW);
+  }
+
+  function seekFromEvent(e) {
+    showFrame(Math.round(fracFromEvent(e) * (W.n - 1)));
+  }
+
+  function hover(e) {
+    var tip = $('tl-tip');
+    var r = $('tl-canvas').getBoundingClientRect();
+    var x = fracFromEvent(e);
+    var y = e.clientY - r.top;
+    var rows = W.acts;
+    var ri = Math.floor((y - FILMH) / ROWH);
+    if (x < 0 || x > 1 || ri < 0 || ri >= rows.length) { tip.hidden = true; return; }
+    var k = clamp(Math.round(x * (W.n - 1)), 0, W.n - 1);
+    var A = rows[ri];
+    tip.textContent = '';
+    var b = document.createElement('b');
+    b.textContent = A.label + '  \u00b7  latent ' + A.id;
+    tip.appendChild(b);
+    tip.appendChild(document.createElement('br'));
+    tip.appendChild(document.createTextNode(
+      'activation ' + A.v[k].toFixed(3) + ' of ' + A.vmax.toFixed(3) + ' max'));
+    tip.appendChild(document.createElement('br'));
+    tip.appendChild(document.createTextNode(
+      't = ' + (k * W.dt).toFixed(2) + ' s   frame ' + (W.f0 + k)));
+    tip.hidden = false;
+    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 262) + 'px';
+    tip.style.top = (e.clientY + 16) + 'px';
+  }
+
+  function play(on) {
+    playing = on;
+    $('tl-play').textContent = on ? 'Pause' : 'Play';
+    if (timer) { clearInterval(timer); timer = null; }
+    if (on) {
+      timer = setInterval(function () {
+        showFrame(i + 1 >= W.n ? 0 : i + 1);
+      }, W.dt * 1000);
+    }
+  }
+
+  function bevCap() {
+    var c = document.getElementById('tl-bevcap');
+    c.textContent = '';
+    var a = document.createElement('span');
+    a.style.color = PLAN; a.textContent = 'Blue';
+    c.appendChild(a);
+    c.appendChild(document.createTextNode(' is the plan the model would execute at this '
+      + 'instant, 5 s ahead. '));
+    if (showGT) {
+      var b2 = document.createElement('span');
+      b2.style.color = TRUTH; b2.textContent = 'Red';
+      c.appendChild(b2);
+      c.appendChild(document.createTextNode(' is where the car actually went.'));
+    } else {
+      c.appendChild(document.createTextNode('It is a prediction, not the route driven.'));
+    }
+  }
+
+  document.getElementById('tl-gt').addEventListener('click', function () {
+    showGT = !showGT;
+    this.setAttribute('aria-pressed', showGT ? 'true' : 'false');
+    this.textContent = showGT ? 'Hide ground truth' : 'Show ground truth';
+    bevCap(); drawOverlay(); drawBev();
+  });
+
+  function load(k) {
+    W = D[k];
+    Array.prototype.forEach.call($('tl-tabs').children, function (b, j) {
+      b.setAttribute('aria-pressed', j === k ? 'true' : 'false');
+    });
+    $('tl-blurb').textContent = W.blurb;
+    $('tl-track').setAttribute('aria-valuemax', W.n - 1);
+    play(false);
+    bevCap();
+    drawTrack();
+    showFrame(0);
+  }
+
+  $('tl-play').addEventListener('click', function () { play(!playing); });
+  $('tl-prev').addEventListener('click', function () { play(false); showFrame(i - 1); });
+  $('tl-next').addEventListener('click', function () { play(false); showFrame(i + 1); });
+  var tr = $('tl-track');
+  tr.addEventListener('pointerdown', function (e) {
+    drag = true; play(false); tr.setPointerCapture(e.pointerId); seekFromEvent(e);
+  });
+  tr.addEventListener('pointermove', function (e) {
+    if (drag) seekFromEvent(e); else hover(e);
+  });
+  tr.addEventListener('pointerup', function () { drag = false; });
+  tr.addEventListener('pointerleave', function () { $('tl-tip').hidden = true; });
+  tr.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') { play(false); showFrame(i - 1); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { play(false); showFrame(i + 1); e.preventDefault(); }
+    if (e.key === ' ') { play(!playing); e.preventDefault(); }
+  });
+  window.addEventListener('resize', function () { if (W) { drawTrack(); showFrame(i); } });
+
+  fetch(ASSETS + 'timeline.json').then(function (r) { return r.json(); }).then(function (data) {
+    D = data;
+    var T = $('tl-tabs');
+    D.forEach(function (w, j) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'tl__tab'; b.textContent = w.title;
+      b.addEventListener('click', function () { load(j); });
+      T.appendChild(b);
+    });
+    load(0);
+  }).catch(function (e) {
+    $('tl-blurb').textContent = 'Could not load timeline.json (' + e.message + ').';
+  });
+})();
+</script>
+<!-- End activation timeline -->
 
 <!-- Interactive alignment figure -->
 <section class="hero is-small is-light">
