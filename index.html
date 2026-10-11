@@ -427,6 +427,7 @@
   color:var(--mute);background:none;border:1px solid var(--rule);padding:5px 12px;cursor:pointer}
 .cf button.cf__btn:hover:not(:disabled){color:var(--ink);border-color:var(--faint)}
 .cf button.cf__btn:disabled{opacity:.35;cursor:default}
+.cf__keys{display:flex;gap:14px;margin-top:8px}
 .cf__count{font-family:var(--mono);font-size:12px;color:var(--faint)}
 .cf__key{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
 .cf__key i{width:18px;height:3px;display:inline-block}
@@ -1349,13 +1350,17 @@
           </div>
 
           <div class="cf__pane">
-            <h3>Internal representation</h3>
+            <h3>Change in SAE feature activations</h3>
             <svg id="cf-bars" viewBox="0 0 320 250" aria-label="Largest latent activation changes"></svg>
           </div>
 
           <div class="cf__pane">
             <h3>Planner output</h3>
             <div class="cf__plan"><svg id="cf-plan" viewBox="0 0 250 300" aria-label="Planned trajectory before and after the edit"></svg></div>
+            <div class="cf__keys">
+              <span class="cf__key"><i style="background:#2f6c9f"></i>original</span>
+              <span class="cf__key"><i style="background:#b94a48"></i>edited</span>
+            </div>
           </div>
         </div>
 
@@ -1363,9 +1368,6 @@
           <button type="button" class="cf__btn" id="cf-prev">Previous</button>
           <button type="button" class="cf__btn" id="cf-next">Next</button>
           <span class="cf__count" id="cf-count"></span>
-          <span style="flex:1 1 auto"></span>
-          <span class="cf__key"><i style="background:#2f6c9f"></i>original</span>
-          <span class="cf__key"><i style="background:#b94a48"></i>edited</span>
         </div>
 
         <figcaption id="cf-cap"></figcaption>
@@ -1476,15 +1478,18 @@
         'font-family': 'Consolas,monospace', 'font-size': 11, fill: 'rgba(0,0,0,.6)' });
       lab.textContent = x.f;
       svg.appendChild(lab);
-      var val = el('text', { x: pos ? midX + w + 5 : midX - w - 5, y: y + rowH / 2 + 3,
-        'text-anchor': pos ? 'start' : 'end', 'font-family': 'Consolas,monospace',
-        'font-size': 10.5, fill: 'rgba(0,0,0,.45)' });
+      // the value goes inside the bar when it fits, otherwise just past the end
+      var inside = w >= 52;
+      var val = el('text', { y: y + rowH / 2 + 3,
+        x: inside ? (pos ? midX + w - 5 : midX - w + 5) : (pos ? midX + w + 5 : midX - w - 5),
+        'text-anchor': (pos === inside) ? 'end' : 'start', 'font-family': 'Consolas,monospace',
+        'font-size': 10.5, fill: inside ? '#fff' : 'rgba(0,0,0,.45)' });
       val.textContent = (x.d >= 0 ? '+' : '−') + Math.abs(x.d).toFixed(2);
       svg.appendChild(val);
     });
     var cap = el('text', { x: midX, y: top + f.length * rowH + 15, 'text-anchor': 'middle',
       'font-family': 'Consolas,monospace', 'font-size': 10.5, fill: 'rgba(0,0,0,.4)' });
-    cap.textContent = 'Δz, scale units · latent id at left';
+    cap.textContent = 'Δz, scale units';
     svg.appendChild(cap);
   }
 
@@ -1537,10 +1542,14 @@
     svg.appendChild(el('line', { x1: px(0), x2: px(0), y1: PT, y2: PH - PB,
       stroke: '#c3c9d2', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
 
-    var sc = el('text', { x: PW - 8, y: PT + 9, 'text-anchor': 'end',
-      'font-family': 'Consolas,monospace', 'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
-    sc.textContent = '\u00b1' + (LAT < 10 ? LAT.toFixed(1) : Math.round(LAT)) + ' m';
-    svg.appendChild(sc);
+    // lateral axis labels along the bottom edge
+    function xlab(v, txt) {
+      var t = el('text', { x: px(v), y: PH - 3, 'text-anchor': 'middle',
+        'font-family': 'Consolas,monospace', 'font-size': 8.5, fill: 'rgba(0,0,0,.34)' });
+      t.textContent = txt; svg.appendChild(t);
+    }
+    xlab(0, '0');
+    for (var q = ls; q <= LAT; q += ls) { xlab(-q, q + ' m'); xlab(q, q + ' m'); }
 
     function path(tr) {
       return tr.map(function (p, i) {
@@ -1561,7 +1570,7 @@
   function paintAll() {
     paintScene(); paintBars(); paintPlan();
     document.getElementById('cf-count').textContent =
-      (cur + 1) + ' of ' + list.length + ' · ' + ex().name;
+      (cur + 1) + ' of ' + list.length;
     document.getElementById('cf-prev').disabled = cur === 0;
     document.getElementById('cf-next').disabled = cur === list.length - 1;
   }
